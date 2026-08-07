@@ -37,10 +37,12 @@ CMD ["npm", "run", "dev"]
 FROM base AS builder
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-# Placeholder connection URLs so `prisma generate` / `next build` do not require
-# real credentials at build time (no database connection is made during build).
+# Placeholder env so `prisma generate` / `next build` do not require real
+# secrets at build time (no database connection is made during build; the real
+# AUTH_SECRET is provided at runtime).
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
 ENV DIRECT_URL="postgresql://build:build@localhost:5432/build"
+ENV AUTH_SECRET="build-time-placeholder-not-used-at-runtime"
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate

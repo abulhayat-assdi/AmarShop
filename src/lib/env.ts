@@ -24,6 +24,13 @@ const envSchema = z.object({
   // Application URLs.
   APP_URL: z.string().min(1).optional(),
   ROOT_DOMAIN: z.string().min(1).default("localhost:3000"),
+
+  // Auth (NextAuth / Auth.js) — secret used to sign session JWTs.
+  AUTH_SECRET: z.string().min(1, "AUTH_SECRET is required"),
+
+  // Super-admin bootstrap credentials — consumed only by the seed script.
+  SUPER_ADMIN_EMAIL: z.string().email().optional(),
+  SUPER_ADMIN_PASSWORD: z.string().min(8).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

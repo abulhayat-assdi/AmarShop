@@ -1,15 +1,13 @@
 // AmarShop — Prisma schema
 //
 // Multi-tenancy model: schema-per-tenant (spec §4).
-//   - The `public` schema holds global data (users, tenants, plans,
-//     subscriptions, templates, feature flags, RBAC, audit log).
-//   - Each tenant gets its own `tenant_<x>` schema, provisioned and migrated
-//     by a custom SQL runner (Prisma manages `public`; tenant schemas are
-//     created/migrated with raw SQL). See spec §4.4.
+//   - The `public` schema holds global data. Prisma manages it (models below).
+//   - Each tenant gets its own `tenant_<x>` schema, provisioned and migrated by
+//     the custom SQL runner in src/lib/tenant/ (Prisma does NOT manage those).
 //
-// NOTE (Module 1 scope): only the datasource/generator are set up here.
-// Data models (public schema tables + the per-tenant provisioning runner)
-// are introduced in Module 2 (Auth + Tenant Provisioning).
+// Module 2 scope: the global auth/tenant models needed for sign-up, login, and
+// tenant provisioning. RBAC (staff/permissions/audit), subscriptions, feature
+// flags, and payment tables arrive in their respective later modules.
 
 generator client {
   provider = "prisma-client-js"
@@ -19,4 +17,83 @@ datasource db {
   provider = "postgresql"
   // Prisma 7: connection URLs live in `prisma.config.ts` (for Migrate) and are
   // passed to PrismaClient via a driver adapter at runtime (see src/lib/prisma.ts).
+}
+
+/// Application-wide roles. `admin`/`editor` are super-admin staff roles whose
+/// granular permissions are managed in the RBAC module (spec §6.7).
+enum UserRole {
+  user
+  super_admin
+  admin
+  editor
+}
+
+/// Lifecycle state of a tenant's site.
+enum TenantStatus {
+  active
+  suspended
+  trial
+}
+
+/// Category of site a tenant runs (e-commerce is the primary focus, spec §1).
+enum SiteType {
+  ecommerce
+  blog
+  portfolio
+  agency
+  landing
+}
+
+/// A platform account. A tenant owner has `tenantId` set; the super-admin (and
+/// its staff) have no tenant. One owner account maps to one tenant by default
+/// (spec §6.4); additional staff users can share a tenant later.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(user)
+  tenantId     String?  @map("tenant_id")
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+/// A customer's site. `schemaName` points at the dedicated PostgreSQL schema
+/// that holds this tenant's data (products, orders, ...).
+model Tenant {
+  id                 String       @id @default(cuid())
+  name               String
+  subdomain          String       @unique
+  customDomain       String?      @unique @map("custom_domain")
+  schemaName         String       @unique @map("schema_name")
+  status             TenantStatus @default(trial)
+  planId             String?      @map("plan_id")
+  plan               Plan?        @relation(fields: [planId], references: [id])
+  siteType           SiteType     @default(ecommerce) @map("site_type")
+  ownGatewayApproved Boolean      @default(false) @map("own_gateway_approved")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+
+  users User[]
+
+  @@index([planId])
+  @@map("tenants")
+}
+
+/// Subscription tier. Prices are placeholders until finalized (spec §13);
+/// `price` is stored in the smallest currency unit (poisha).
+model Plan {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  price     Int      @default(0)
+  maxSites  Int      @default(1) @map("max_sites")
+  features  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenants Tenant[]
+
+  @@map("plans")
 }
