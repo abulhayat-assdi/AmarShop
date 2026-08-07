@@ -1,0 +1,111 @@
+name: amarshop
+
+# Local development stack (spec §9: local = production parity).
+# Brings up the Next.js app plus PostgreSQL, PgBouncer, and Redis.
+#
+# Credentials come from the environment (project .env locally; Coolify secrets in
+# production) — nothing sensitive is hardcoded here. Datastore ports are bound to
+# loopback so they are reachable for local tooling but never exposed publicly
+# (Docker port publishing would otherwise bypass the host firewall on the VPS).
+#
+# Usage:
+#   docker compose up --build        # start the full stack
+#   docker compose down              # stop
+#   docker compose down -v           # stop and wipe database/redis volumes
+
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    env_file:
+      - .env
+    environment:
+      # Inside the compose network, reach services by name. These override the
+      # localhost values from .env (used when running the app outside Docker).
+      # NOTE: the runtime schema is selected by the Prisma pg driver adapter, not
+      # by the URL. Transaction-mode pooling is safe because node-postgres uses
+      # unnamed prepared statements.
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}
+      DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+    ports:
+      # In production this sits behind Traefik/Coolify; exposed here for local dev.
+      - "3000:3000"
+    volumes:
+      # Bind-mount source for hot reload, but keep container-managed
+      # node_modules and .next (anonymous volumes shadow the host paths).
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      POSTGRES_DB: ${POSTGRES_DB:?required}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  pgbouncer:
+    # TODO: pin to a specific edoburu/pgbouncer tag/digest for reproducibility
+    # (kept at :latest for now to stay runnable without verifying a tag offline).
+    image: edoburu/pgbouncer:latest
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${POSTGRES_USER:?required}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      DB_NAME: ${POSTGRES_DB:?required}
+      POOL_MODE: transaction
+      AUTH_TYPE: scram-sha-256
+      MAX_CLIENT_CONN: "100"
+      DEFAULT_POOL_SIZE: "20"
+      ADMIN_USERS: ${POSTGRES_USER:?required}
+      # Prisma sends startup parameters PgBouncer must ignore in transaction mode.
+      IGNORE_STARTUP_PARAMETERS: extra_float_digits,search_path
+    ports:
+      - "127.0.0.1:6432:6432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command:
+      ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?required}"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?required}
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

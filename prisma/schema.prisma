@@ -1,0 +1,22 @@
+// AmarShop — Prisma schema
+//
+// Multi-tenancy model: schema-per-tenant (spec §4).
+//   - The `public` schema holds global data (users, tenants, plans,
+//     subscriptions, templates, feature flags, RBAC, audit log).
+//   - Each tenant gets its own `tenant_<x>` schema, provisioned and migrated
+//     by a custom SQL runner (Prisma manages `public`; tenant schemas are
+//     created/migrated with raw SQL). See spec §4.4.
+//
+// NOTE (Module 1 scope): only the datasource/generator are set up here.
+// Data models (public schema tables + the per-tenant provisioning runner)
+// are introduced in Module 2 (Auth + Tenant Provisioning).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Prisma 7: connection URLs live in `prisma.config.ts` (for Migrate) and are
+  // passed to PrismaClient via a driver adapter at runtime (see src/lib/prisma.ts).
+}
