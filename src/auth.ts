@@ -4,6 +4,12 @@ import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validation/auth";
 
+// A valid bcrypt hash used only to equalize authentication timing when an
+// account is not found — this mitigates email enumeration via response timing.
+// It is not a usable credential.
+const DUMMY_PASSWORD_HASH =
+  "$2b$12$CNDagSSIa4c7dS3z.mMFEOubmoqBdWDAklCA4oGBLihqcd.j1vmmu";
+
 /**
  * NextAuth (Auth.js v5) configuration.
  *
@@ -13,7 +19,8 @@ import { loginSchema } from "@/lib/validation/auth";
  * (spec §4.3). Social login can be added later without changing this shape.
  */
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  session: { strategy: "jwt" },
+  // Bound how long a session (and its cached role/tenant claims) stays valid.
+  session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
   trustHost: true,
   pages: {
     signIn: "/login",
@@ -33,10 +40,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { email },
           include: { tenant: true },
         });
-        if (!user) return null;
 
-        const passwordOk = await compare(password, user.passwordHash);
-        if (!passwordOk) return null;
+        // Always run a comparison (against a dummy hash when the account does
+        // not exist) so timing does not reveal whether the email is registered.
+        const passwordOk = await compare(
+          password,
+          user?.passwordHash ?? DUMMY_PASSWORD_HASH,
+        );
+        if (!user || !passwordOk) return null;
+
+        // Suspended tenants cannot sign in (spec §6.4).
+        if (user.tenant && user.tenant.status === "suspended") return null;
 
         return {
           id: user.id,

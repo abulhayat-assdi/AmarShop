@@ -49,7 +49,7 @@ docker compose up    # full local stack (app + postgres + pgbouncer + redis)
 ## Phase 1 module status
 
 1. Project scaffold — **done**
-2. Auth (NextAuth) + schema-per-tenant provisioning
+2. Auth (NextAuth) + schema-per-tenant provisioning — **done** (code complete; DB apply/runtime test pending local Docker)
 3. Subdomain routing middleware
 4. Block components + TemplateRenderer + starter templates
 5. Per-tenant admin panel (product/order/inventory)

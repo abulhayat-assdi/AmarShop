@@ -16,13 +16,30 @@ export async function provisionTenantSchema(schema: string): Promise<void> {
   const client = new Client({ connectionString: env.DIRECT_URL });
   await client.connect();
   try {
+    // Refuse to provision over an existing schema so a reused name can never
+    // silently attach a new tenant to another tenant's leftover data.
+    const existing = await client.query(
+      "SELECT 1 FROM information_schema.schemata WHERE schema_name = $1",
+      [schema],
+    );
+    if ((existing.rowCount ?? 0) > 0) {
+      throw new Error(
+        `Schema "${schema}" already exists; refusing to provision over it.`,
+      );
+    }
+
     await client.query("BEGIN");
     for (const statement of tenantSchemaStatements(schema)) {
       await client.query(statement);
     }
     await client.query("COMMIT");
   } catch (error) {
-    await client.query("ROLLBACK");
+    // Roll back best-effort, but never let a ROLLBACK failure mask the real error.
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // ignore — the original error below is what matters
+    }
     throw error;
   } finally {
     await client.end();

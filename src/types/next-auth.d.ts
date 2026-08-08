@@ -24,7 +24,9 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
+// In NextAuth v5 the JWT interface lives in @auth/core/jwt (next-auth/jwt only
+// re-exports it), so the augmentation must target that module.
+declare module "@auth/core/jwt" {
   interface JWT {
     role: UserRole;
     tenantId: string | null;
