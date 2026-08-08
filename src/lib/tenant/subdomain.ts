@@ -57,3 +57,30 @@ export function isReservedSubdomain(subdomain: string): boolean {
 export function schemaNameForSubdomain(subdomain: string): string {
   return `tenant_${subdomain.replace(/-/g, "_")}`;
 }
+
+/** The platform's root domain (e.g. "amarshop.com", or "localhost:3000" in dev). */
+export function getRootDomain(): string {
+  return process.env.ROOT_DOMAIN ?? "localhost:3000";
+}
+
+/**
+ * Extracts the tenant subdomain from a request Host header, or null when the
+ * request targets the platform itself (the root domain, `www`, or a reserved
+ * name). Custom domains — hosts not under the root domain — also return null;
+ * they are resolved separately (spec §6.1, Phase 3). Edge-safe (no I/O).
+ */
+export function getSubdomainFromHost(
+  host: string | null | undefined,
+  rootDomain: string,
+): string | null {
+  if (!host) return null;
+  const h = host.toLowerCase().trim();
+  const root = rootDomain.toLowerCase().trim();
+
+  if (h === root || h === `www.${root}`) return null;
+  if (!h.endsWith(`.${root}`)) return null; // custom / unknown domain
+
+  const sub = h.slice(0, h.length - root.length - 1);
+  if (!sub || sub.includes("/") || isReservedSubdomain(sub)) return null;
+  return sub;
+}
