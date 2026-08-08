@@ -1,0 +1,51 @@
+{
+  "name": "Minimal Portfolio",
+  "slug": "portfolio-minimal",
+  "category": "portfolio",
+  "siteType": "portfolio",
+  "blocks": [
+    {
+      "type": "Navbar",
+      "data": {
+        "logoText": "আমার পোর্টফোলিও",
+        "links": [
+          { "label": "কাজ" },
+          { "label": "পরিচিতি" },
+          { "label": "যোগাযোগ" }
+        ]
+      }
+    },
+    {
+      "type": "HeroBanner",
+      "data": {
+        "heading": "হ্যালো, আমি একজন ডিজাইনার",
+        "subheading": "সৃজনশীল কাজের একটি সংগ্রহ",
+        "buttonText": "কাজ দেখুন",
+        "bgColor": "#111827"
+      }
+    },
+    {
+      "type": "Gallery",
+      "data": { "heading": "নির্বাচিত কাজ", "images": [] }
+    },
+    {
+      "type": "AboutSection",
+      "data": {
+        "heading": "আমার সম্পর্কে",
+        "body": "আমি ব্র্যান্ডিং ও ওয়েব ডিজাইন নিয়ে কাজ করি। বিস্তারিত জানতে যোগাযোগ করুন।"
+      }
+    },
+    {
+      "type": "ContactSection",
+      "data": {
+        "heading": "যোগাযোগ",
+        "email": "hello@portfolio.example",
+        "phone": "01800-000000"
+      }
+    },
+    {
+      "type": "Footer",
+      "data": { "text": "© ২০২৬" }
+    }
+  ]
+}

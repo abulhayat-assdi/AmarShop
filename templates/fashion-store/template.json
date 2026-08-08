@@ -1,0 +1,62 @@
+{
+  "name": "Fashion Store",
+  "slug": "fashion-store",
+  "category": "fashion",
+  "siteType": "ecommerce",
+  "blocks": [
+    {
+      "type": "Navbar",
+      "data": {
+        "logoText": "ফ্যাশন হাউস",
+        "links": [
+          { "label": "হোম", "href": "#" },
+          { "label": "শপ", "href": "#" },
+          { "label": "অ্যাবাউট", "href": "#" }
+        ]
+      }
+    },
+    {
+      "type": "HeroBanner",
+      "data": {
+        "heading": "নতুন কালেকশন ২০২৬",
+        "subheading": "সেরা দামে ট্রেন্ডি পোশাক",
+        "buttonText": "এখনই কিনুন",
+        "buttonHref": "#",
+        "bgColor": "#1a1a2e"
+      }
+    },
+    {
+      "type": "CategoryBar",
+      "data": {
+        "categories": [
+          { "label": "শাড়ি" },
+          { "label": "থ্রি-পিস" },
+          { "label": "পাঞ্জাবি" },
+          { "label": "টি-শার্ট" }
+        ]
+      }
+    },
+    {
+      "type": "ProductGrid",
+      "data": {
+        "heading": "জনপ্রিয় পণ্য",
+        "columns": 3,
+        "products": [
+          { "name": "সিল্ক শাড়ি", "price": 2500, "badge": "নতুন" },
+          { "name": "কটন থ্রি-পিস", "price": 1800 },
+          { "name": "এমব্রয়ডারি পাঞ্জাবি", "price": 1500 },
+          { "name": "প্রিমিয়াম টি-শার্ট", "price": 650, "badge": "সেল" },
+          { "name": "ডেনিম জ্যাকেট", "price": 2200 },
+          { "name": "ফরমাল শার্ট", "price": 1200 }
+        ]
+      }
+    },
+    {
+      "type": "Footer",
+      "data": {
+        "text": "© ২০২৬ ফ্যাশন হাউস — সর্বস্বত্ব সংরক্ষিত",
+        "links": [{ "label": "প্রাইভেসি" }, { "label": "যোগাযোগ" }]
+      }
+    }
+  ]
+}

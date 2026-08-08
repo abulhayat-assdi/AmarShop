@@ -1,0 +1,65 @@
+{
+  "name": "Grocery Store",
+  "slug": "grocery-store",
+  "category": "grocery",
+  "siteType": "ecommerce",
+  "blocks": [
+    {
+      "type": "Navbar",
+      "data": {
+        "logoText": "ফ্রেশ বাজার",
+        "links": [
+          { "label": "হোম" },
+          { "label": "পণ্য" },
+          { "label": "অফার" }
+        ]
+      }
+    },
+    {
+      "type": "HeroBanner",
+      "data": {
+        "heading": "তাজা পণ্য, ঘরে পৌঁছে যায়",
+        "subheading": "প্রতিদিনের বাজার এখন অনলাইনে",
+        "buttonText": "অর্ডার করুন",
+        "bgColor": "#14532d"
+      }
+    },
+    {
+      "type": "CategoryBar",
+      "data": {
+        "categories": [
+          { "label": "সবজি" },
+          { "label": "ফল" },
+          { "label": "মাছ-মাংস" },
+          { "label": "মুদি" }
+        ]
+      }
+    },
+    {
+      "type": "ProductGrid",
+      "data": {
+        "heading": "আজকের অফার",
+        "columns": 4,
+        "products": [
+          { "name": "দেশি আলু (কেজি)", "price": 40 },
+          { "name": "পেঁয়াজ (কেজি)", "price": 60, "badge": "সেল" },
+          { "name": "রুই মাছ (কেজি)", "price": 320 },
+          { "name": "সয়াবিন তেল (লিটার)", "price": 170 }
+        ]
+      }
+    },
+    {
+      "type": "ContactSection",
+      "data": {
+        "heading": "যোগাযোগ",
+        "phone": "01700-000000",
+        "email": "order@freshbazar.example",
+        "address": "ঢাকা, বাংলাদেশ"
+      }
+    },
+    {
+      "type": "Footer",
+      "data": { "text": "© ২০২৬ ফ্রেশ বাজার" }
+    }
+  ]
+}

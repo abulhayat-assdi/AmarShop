@@ -83,6 +83,26 @@ model Tenant {
   @@map("tenants")
 }
 
+/// A master template = a read-only blueprint (spec §5.6). Selecting one deep-
+/// copies its `structureJson` (blocks) into the tenant's `site_config`.
+model Template {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  category        String
+  siteType        SiteType @map("site_type")
+  structureJson   Json     @map("structure_json")
+  defaultDataJson Json     @default("{}") @map("default_data_json")
+  previewUrl      String?  @map("preview_url")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([siteType])
+  @@index([category])
+  @@map("templates")
+}
+
 /// Subscription tier. Prices are placeholders until finalized (spec §13);
 /// `price` is stored in the smallest currency unit (poisha).
 model Plan {

@@ -1,22 +1,22 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { TemplateRenderer } from "@/components/TemplateRenderer";
 import { getTenantBySubdomain } from "@/lib/tenant/context";
-import { countTenantProducts } from "@/lib/tenant/db";
+import { getSiteConfigBlocks } from "@/lib/tenant/site-config";
 
 type TenantSiteParams = {
   params: Promise<{ subdomain: string; slug?: string[] }>;
 };
 
 /**
- * Public tenant site (spec §4.3, §5).
+ * Public tenant site (spec §4.3, §5.4).
  *
- * Reached only through the subdomain rewrite in middleware. In Module 3 this is
- * a placeholder that confirms the request was routed to the right tenant and
- * scoped to its schema; the real storefront (TemplateRenderer) arrives in
- * Module 4.
+ * Reached only through the subdomain rewrite in middleware. Resolves the tenant
+ * from the host, then renders its `site_config` blocks through the shared
+ * TemplateRenderer — the same renderer draws every tenant's site.
  */
 export default async function TenantSitePage({ params }: TenantSiteParams) {
-  const { subdomain, slug } = await params;
+  const { subdomain } = await params;
 
   // Only reachable via the subdomain rewrite (middleware sets this header);
   // a direct /s/<subdomain> visit on the platform domain 404s.
@@ -39,33 +39,21 @@ export default async function TenantSitePage({ params }: TenantSiteParams) {
     );
   }
 
-  // Read from the tenant's own schema — proves the request is isolated to it.
-  const productCount = await countTenantProducts(tenant.schemaName);
-  const requestedPath = `/${slug?.join("/") ?? ""}`;
+  // The tenant's live site — scoped to its own schema (host-derived, isolated).
+  const blocks = await getSiteConfigBlocks(tenant.schemaName);
+  const hasSite = Array.isArray(blocks) && blocks.length > 0;
 
-  return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-16">
-      <header className="flex flex-col gap-1">
-        <span className="text-xs font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
-          {tenant.siteType} site
-        </span>
-        <h1 className="text-3xl font-semibold tracking-tight">{tenant.name}</h1>
-      </header>
-
-      <section className="rounded-lg border border-black/10 p-6 dark:border-white/15">
-        <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
-          Routed by subdomain and scoped to this tenant&apos;s schema. The
-          storefront rendering arrives in Module 4.
+  if (!hasSite) {
+    return (
+      <main className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-24 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">{tenant.name}</h1>
+        <p className="max-w-md text-zinc-500 dark:text-zinc-400">
+          This site hasn&apos;t been set up yet. The owner can choose a template
+          from their dashboard.
         </p>
-        <dl className="grid grid-cols-[9rem_1fr] gap-y-3 text-sm">
-          <dt className="text-zinc-500 dark:text-zinc-400">Subdomain</dt>
-          <dd className="font-mono">{tenant.subdomain}</dd>
-          <dt className="text-zinc-500 dark:text-zinc-400">Requested path</dt>
-          <dd className="font-mono">{requestedPath}</dd>
-          <dt className="text-zinc-500 dark:text-zinc-400">Products in schema</dt>
-          <dd>{productCount}</dd>
-        </dl>
-      </section>
-    </main>
-  );
+      </main>
+    );
+  }
+
+  return <TemplateRenderer blocks={blocks} />;
 }
