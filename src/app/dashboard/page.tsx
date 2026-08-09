@@ -1,23 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { LogoutButton } from "@/components/auth/logout-button";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+import { getOrderStats } from "@/lib/tenant/orders";
+import { getProductStats } from "@/lib/tenant/products";
 import { getSiteConfigBlocks } from "@/lib/tenant/site-config";
 import { selectTemplate } from "./actions";
 
-function DashboardHeader({ email }: { email?: string | null }) {
+function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <header className="flex items-center justify-between">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Signed in as {email}
-        </p>
-      </div>
-      <LogoutButton />
-    </header>
+    <div className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
+    </div>
   );
 }
 
@@ -34,68 +30,76 @@ export default async function DashboardPage() {
 
   if (!tenant) {
     return (
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-12">
-        <DashboardHeader email={session.user.email} />
-        <section className="rounded-lg border border-black/10 p-6 dark:border-white/15">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            This account is not attached to a tenant site.
-          </p>
-          {session.user.role === "super_admin" && (
-            <Link href="/admin" className="mt-3 inline-block text-sm underline">
-              Go to super-admin →
-            </Link>
-          )}
-        </section>
-      </main>
+      <section className="rounded-lg border border-black/10 p-6 dark:border-white/15">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          This account is not attached to a tenant site.
+        </p>
+        {session.user.role === "super_admin" && (
+          <Link href="/admin" className="mt-3 inline-block text-sm underline">
+            Go to super-admin →
+          </Link>
+        )}
+      </section>
     );
   }
 
   if (tenant.status === "suspended") {
     return (
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-12">
-        <DashboardHeader email={session.user.email} />
-        <section className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-6">
-          <h2 className="mb-1 text-lg font-medium">Site suspended</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {tenant.name} is currently suspended. Please contact support to
-            restore access.
-          </p>
-        </section>
-      </main>
+      <section className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-6">
+        <h2 className="mb-1 text-lg font-medium">Site suspended</h2>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          {tenant.name} is currently suspended. Please contact support to
+          restore access.
+        </p>
+      </section>
     );
   }
 
-  const [templates, currentBlocks] = await Promise.all([
-    prisma.template.findMany({
-      where: { isActive: true, siteType: tenant.siteType },
-      select: { id: true, name: true, category: true },
-      orderBy: { name: "asc" },
-    }),
-    getSiteConfigBlocks(tenant.schemaName),
-  ]);
+  const [productStats, orderStats, templates, currentBlocks] = await Promise.all(
+    [
+      getProductStats(tenant.schemaName),
+      getOrderStats(tenant.schemaName),
+      prisma.template.findMany({
+        where: { isActive: true, siteType: tenant.siteType },
+        select: { id: true, name: true, category: true },
+        orderBy: { name: "asc" },
+      }),
+      getSiteConfigBlocks(tenant.schemaName),
+    ],
+  );
   const hasSite = Array.isArray(currentBlocks) && currentBlocks.length > 0;
   const siteUrl = `http://${tenant.subdomain}.${env.ROOT_DOMAIN}`;
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-12">
-      <DashboardHeader email={session.user.email} />
+    <div className="flex flex-col gap-8">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">{tenant.name}</h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          Overview of your {tenant.siteType} site.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <StatCard label="Products" value={productStats.total} />
+        <StatCard label="Low stock (≤5)" value={productStats.lowStock} />
+        <StatCard label="Orders" value={orderStats.total} />
+        <StatCard label="Revenue" value={`৳${orderStats.revenue.toLocaleString("en-US")}`} />
+      </div>
 
       <section className="rounded-lg border border-black/10 p-6 dark:border-white/15">
-        <h2 className="mb-4 text-lg font-medium">{tenant.name}</h2>
+        <h2 className="mb-4 text-lg font-medium">Site</h2>
         <dl className="grid grid-cols-[8rem_1fr] gap-y-3 text-sm">
-          <dt className="text-zinc-500 dark:text-zinc-400">Site address</dt>
+          <dt className="text-zinc-500 dark:text-zinc-400">Address</dt>
           <dd>
             <a href={siteUrl} className="underline">
               {tenant.subdomain}.{env.ROOT_DOMAIN}
             </a>
           </dd>
-          <dt className="text-zinc-500 dark:text-zinc-400">Site type</dt>
-          <dd>{tenant.siteType}</dd>
           <dt className="text-zinc-500 dark:text-zinc-400">Status</dt>
           <dd>{tenant.status}</dd>
           <dt className="text-zinc-500 dark:text-zinc-400">Plan</dt>
           <dd>{tenant.plan?.name ?? "—"}</dd>
-          <dt className="text-zinc-500 dark:text-zinc-400">Site</dt>
+          <dt className="text-zinc-500 dark:text-zinc-400">Storefront</dt>
           <dd>
             {hasSite ? (
               <a href={siteUrl} className="underline">
@@ -113,10 +117,8 @@ export default async function DashboardPage() {
           {hasSite ? "Switch template" : "Choose a template"}
         </h2>
         <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
-          Pick a starter template for your {tenant.siteType} site. Applying one
-          replaces your current layout with a fresh copy you can edit.
+          Applying a template replaces your layout with a fresh copy you can edit.
         </p>
-
         {templates.length === 0 ? (
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
             No templates available for this site type yet.
@@ -148,6 +150,6 @@ export default async function DashboardPage() {
           </ul>
         )}
       </section>
-    </main>
+    </div>
   );
 }
