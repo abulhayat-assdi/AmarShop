@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { requireTenantContext } from "@/lib/auth/current-tenant";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import { getOrderStats } from "@/lib/tenant/orders";
@@ -18,32 +17,17 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 }
 
 export default async function DashboardPage() {
-  const session = await auth();
-  if (!session) redirect("/login");
+  const { tenantId, schema, subdomain, impersonating } =
+    await requireTenantContext();
 
-  const tenant = session.user.tenantId
-    ? await prisma.tenant.findUnique({
-        where: { id: session.user.tenantId },
-        include: { plan: true },
-      })
-    : null;
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    include: { plan: true },
+  });
+  if (!tenant) redirect(impersonating ? "/admin" : "/login");
 
-  if (!tenant) {
-    return (
-      <section className="rounded-lg border border-black/10 p-6 dark:border-white/15">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          This account is not attached to a tenant site.
-        </p>
-        {session.user.role === "super_admin" && (
-          <Link href="/admin" className="mt-3 inline-block text-sm underline">
-            Go to super-admin →
-          </Link>
-        )}
-      </section>
-    );
-  }
-
-  if (tenant.status === "suspended") {
+  // Owners cannot use a suspended site; an impersonating admin may still inspect it.
+  if (tenant.status === "suspended" && !impersonating) {
     return (
       <section className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-6">
         <h2 className="mb-1 text-lg font-medium">Site suspended</h2>
@@ -57,18 +41,18 @@ export default async function DashboardPage() {
 
   const [productStats, orderStats, templates, currentBlocks] = await Promise.all(
     [
-      getProductStats(tenant.schemaName),
-      getOrderStats(tenant.schemaName),
+      getProductStats(schema),
+      getOrderStats(schema),
       prisma.template.findMany({
         where: { isActive: true, siteType: tenant.siteType },
         select: { id: true, name: true, category: true },
         orderBy: { name: "asc" },
       }),
-      getSiteConfigBlocks(tenant.schemaName),
+      getSiteConfigBlocks(schema),
     ],
   );
   const hasSite = Array.isArray(currentBlocks) && currentBlocks.length > 0;
-  const siteUrl = `http://${tenant.subdomain}.${env.ROOT_DOMAIN}`;
+  const siteUrl = `http://${subdomain}.${env.ROOT_DOMAIN}`;
 
   return (
     <div className="flex flex-col gap-8">
@@ -83,7 +67,10 @@ export default async function DashboardPage() {
         <StatCard label="Products" value={productStats.total} />
         <StatCard label="Low stock (≤5)" value={productStats.lowStock} />
         <StatCard label="Orders" value={orderStats.total} />
-        <StatCard label="Revenue" value={`৳${orderStats.revenue.toLocaleString("en-US")}`} />
+        <StatCard
+          label="Revenue"
+          value={`৳${orderStats.revenue.toLocaleString("en-US")}`}
+        />
       </div>
 
       <section className="rounded-lg border border-black/10 p-6 dark:border-white/15">
@@ -92,7 +79,7 @@ export default async function DashboardPage() {
           <dt className="text-zinc-500 dark:text-zinc-400">Address</dt>
           <dd>
             <a href={siteUrl} className="underline">
-              {tenant.subdomain}.{env.ROOT_DOMAIN}
+              {subdomain}.{env.ROOT_DOMAIN}
             </a>
           </dd>
           <dt className="text-zinc-500 dark:text-zinc-400">Status</dt>

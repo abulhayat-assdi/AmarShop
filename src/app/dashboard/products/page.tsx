@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { requireTenantContext } from "@/lib/auth/current-tenant";
 import { listProducts } from "@/lib/tenant/products";
 import { deleteProductAction } from "./actions";
@@ -69,12 +70,12 @@ export default async function ProductsPage() {
                           name="productId"
                           value={product.id}
                         />
-                        <button
-                          type="submit"
+                        <ConfirmButton
+                          message={`Delete "${product.name}"?`}
                           className="text-red-600 hover:underline dark:text-red-400"
                         >
                           Delete
-                        </button>
+                        </ConfirmButton>
                       </form>
                     </div>
                   </td>

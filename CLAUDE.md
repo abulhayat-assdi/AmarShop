@@ -53,7 +53,7 @@ docker compose up    # full local stack (app + postgres + pgbouncer + redis)
 3. Subdomain routing middleware — **done** (code complete; runtime test pending local Docker + a provisioned tenant)
 4. Block components + TemplateRenderer + starter templates — **done** (code complete; runtime test pending local Docker)
 5. Per-tenant admin panel (product/order/inventory) — **done** (code complete; runtime test pending local Docker)
-6. Full super-admin panel
+6. Full super-admin panel — **done** (code complete; runtime test pending local Docker)
 7. Access Management / RBAC (roles, permissions, audit log)
 8. Self-hosted storage (Sharp upload) + R2 backup
 

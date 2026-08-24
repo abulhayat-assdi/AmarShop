@@ -1,37 +1,105 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { getImpersonatedTenantId } from "@/lib/admin/impersonation";
+import { prisma } from "@/lib/prisma";
 
-export type TenantContext = {
-  userId: string;
-  email: string;
+export type EffectiveTenant = {
   tenantId: string;
   schema: string;
   subdomain: string;
+  impersonating: boolean;
+};
+
+export type TenantContext = EffectiveTenant & {
+  userId: string;
+  email: string;
 };
 
 /**
- * Resolves the signed-in owner's tenant context for the admin area.
+ * Resolves the tenant a dashboard request should act on, honoring super-admin
+ * impersonation (spec §6.6). Non-throwing — returns null tenant for a signed-out
+ * user or a super-admin who is not currently impersonating.
  *
- * Redirects to /login when unauthenticated and to /dashboard when the account
- * has no tenant (e.g. a super-admin). The schema returned here is the ONLY
- * schema the admin data layer touches — it comes from the session (server-side,
- * from the signed JWT), never from the request — which enforces tenant isolation.
- * Server actions must call this too; a layout guard alone does not protect them.
+ * The impersonation cookie is honored ONLY for a live super-admin session, so a
+ * stray cookie never grants tenant access to anyone else.
  */
-export async function requireTenantContext(): Promise<TenantContext> {
+export async function resolveEffectiveTenant(): Promise<{
+  authenticated: boolean;
+  isSuperAdmin: boolean;
+  tenant: EffectiveTenant | null;
+  userId: string;
+  email: string;
+}> {
   const session = await auth();
-  if (!session) redirect("/login");
-
-  const { id, email, tenantId, tenantSchema, tenantSubdomain } = session.user;
-  if (!tenantId || !tenantSchema || !tenantSubdomain) {
-    redirect("/dashboard");
+  if (!session) {
+    return {
+      authenticated: false,
+      isSuperAdmin: false,
+      tenant: null,
+      userId: "",
+      email: "",
+    };
   }
 
+  const base = {
+    authenticated: true,
+    isSuperAdmin: session.user.role === "super_admin",
+    userId: session.user.id,
+    email: session.user.email ?? "",
+  };
+
+  if (base.isSuperAdmin) {
+    const impersonatedId = await getImpersonatedTenantId();
+    if (impersonatedId) {
+      const t = await prisma.tenant.findUnique({
+        where: { id: impersonatedId },
+        select: { id: true, schemaName: true, subdomain: true },
+      });
+      if (t) {
+        return {
+          ...base,
+          tenant: {
+            tenantId: t.id,
+            schema: t.schemaName,
+            subdomain: t.subdomain,
+            impersonating: true,
+          },
+        };
+      }
+    }
+    return { ...base, tenant: null };
+  }
+
+  const { tenantId, tenantSchema, tenantSubdomain } = session.user;
+  if (tenantId && tenantSchema && tenantSubdomain) {
+    return {
+      ...base,
+      tenant: {
+        tenantId,
+        schema: tenantSchema,
+        subdomain: tenantSubdomain,
+        impersonating: false,
+      },
+    };
+  }
+  return { ...base, tenant: null };
+}
+
+/**
+ * Requires an effective tenant for the admin area. Redirects to /login when
+ * signed out, to /admin for a super-admin who is not impersonating, and to
+ * /dashboard for an account that has no tenant. Server actions must call this
+ * too; a layout guard alone does not protect them.
+ */
+export async function requireTenantContext(): Promise<TenantContext> {
+  const resolved = await resolveEffectiveTenant();
+  if (!resolved.authenticated) redirect("/login");
+  if (!resolved.tenant) {
+    redirect(resolved.isSuperAdmin ? "/admin" : "/dashboard");
+  }
   return {
-    userId: id,
-    email: email ?? "",
-    tenantId,
-    schema: tenantSchema,
-    subdomain: tenantSubdomain,
+    ...resolved.tenant,
+    userId: resolved.userId,
+    email: resolved.email,
   };
 }
