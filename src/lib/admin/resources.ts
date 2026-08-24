@@ -5,6 +5,7 @@
 export const RESOURCES = [
   { key: "tenants", label: "Tenants" },
   { key: "templates", label: "Templates" },
+  { key: "billing", label: "Billing" },
   { key: "audit", label: "Audit log" },
 ] as const;
 export type ResourceKey = (typeof RESOURCES)[number]["key"];

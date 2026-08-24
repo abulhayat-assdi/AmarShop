@@ -68,8 +68,16 @@ docker compose up    # full local stack (app + postgres + pgbouncer + redis)
   our 9 blocks to Puck components (`src/lib/editor/puck-config.tsx`); saves via
   `updateSiteBlocks` after re-validating with `parseBlocks`.
 - Feature flags (`tenant_features` + `hasFeature`) — already delivered in M6.
-- Remaining: payment abstraction (bKash/SSLCommerz), subscription billing +
-  grace/suspend, pilot test. Payment needs merchant credentials + §13 decisions.
+- Subscription/billing + payment abstraction — **done** (code complete).
+  `Subscription`/`PlatformGateway` models; AES-256-GCM credential encryption
+  (`src/lib/crypto/secrets.ts`, ENCRYPTION_KEY); generic `PaymentGateway`
+  abstraction (`src/lib/payments/`) with a manual gateway + resolver
+  (own→platform→manual) and **stubbed** bKash/SSLCommerz (live API pending
+  merchant credentials, §13); subscription lifecycle + grace/suspend + sweep
+  (`src/lib/billing/subscriptions.ts`); `/admin/billing` + tenant-detail
+  subscription controls, gated by a new `billing` RBAC resource, audit-logged.
+- Remaining: live bKash/SSLCommerz integration (needs merchant creds + DCO),
+  automated billing sweep (cron/BullMQ), and pilot test.
 
 Known npm-audit items (accepted): `deepmerge-ts` (Prisma 7 CLI, build-time only)
 and `uuid` (via Puck, not exploited in its usage); both would require breaking

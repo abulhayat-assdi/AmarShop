@@ -19,6 +19,7 @@ export default async function AdminLayout({
     { href: "/admin", label: "Overview", show: true },
     { href: "/admin/tenants", label: "Tenants", show: perms.tenants.view },
     { href: "/admin/templates", label: "Templates", show: perms.templates.view },
+    { href: "/admin/billing", label: "Billing", show: perms.billing.view },
     { href: "/admin/audit", label: "Audit log", show: perms.audit.view },
     { href: "/admin/access", label: "Access", show: isSuperAdmin },
   ].filter((item) => item.show);

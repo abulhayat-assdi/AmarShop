@@ -40,6 +40,10 @@ const envSchema = z.object({
   R2_BUCKET: z.string().min(1).optional(),
   R2_ACCESS_KEY_ID: z.string().min(1).optional(),
   R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+
+  // Secret used to encrypt payment gateway credentials at rest (spec §6.2, §8).
+  // Required only when configuring a gateway; min 16 chars.
+  ENCRYPTION_KEY: z.string().min(16).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

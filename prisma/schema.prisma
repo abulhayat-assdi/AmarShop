@@ -44,6 +44,21 @@ enum SiteType {
   landing
 }
 
+/// Subscription lifecycle (spec §6.4).
+enum SubscriptionStatus {
+  active
+  trialing
+  past_due
+  cancelled
+  expired
+}
+
+/// How a subscription is paid (spec §6.4).
+enum PaymentMethod {
+  auto
+  manual
+}
+
 /// A platform account. A tenant owner has `tenantId` set; the super-admin (and
 /// its staff) have no tenant. One owner account maps to one tenant by default
 /// (spec §6.4); additional staff users can share a tenant later.
@@ -78,8 +93,9 @@ model Tenant {
   createdAt          DateTime     @default(now()) @map("created_at")
   updatedAt          DateTime     @updatedAt @map("updated_at")
 
-  users    User[]
-  features TenantFeature[]
+  users         User[]
+  features      TenantFeature[]
+  subscriptions Subscription[]
 
   @@index([planId])
   @@map("tenants")
@@ -173,7 +189,41 @@ model Plan {
   features  Json     @default("{}")
   createdAt DateTime @default(now()) @map("created_at")
 
-  tenants Tenant[]
+  tenants       Tenant[]
+  subscriptions Subscription[]
 
   @@map("plans")
+}
+
+/// A tenant's subscription to a plan (spec §6.4, §12). Billing is manual (super-
+/// admin activates) or automated (platform gateway) — see src/lib/payments.
+model Subscription {
+  id            String             @id @default(cuid())
+  tenantId      String             @map("tenant_id")
+  tenant        Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId        String?            @map("plan_id")
+  plan          Plan?              @relation(fields: [planId], references: [id])
+  status        SubscriptionStatus @default(active)
+  paymentMethod PaymentMethod      @default(manual) @map("payment_method")
+  startDate     DateTime           @default(now()) @map("start_date")
+  endDate       DateTime?          @map("end_date")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+/// The platform's shared payment gateway (spec §6.2). Credentials are stored
+/// encrypted, never in plain text.
+model PlatformGateway {
+  id                   String   @id @default(cuid())
+  gateway              String
+  encryptedCredentials String?  @map("encrypted_credentials")
+  isActive             Boolean  @default(false) @map("is_active")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_gateway")
 }

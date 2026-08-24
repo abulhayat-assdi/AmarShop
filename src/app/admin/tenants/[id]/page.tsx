@@ -1,4 +1,8 @@
 import { notFound } from "next/navigation";
+import {
+  activateSubscriptionAction,
+  cancelSubscriptionAction,
+} from "@/app/admin/billing/actions";
 import { startImpersonationAction } from "@/app/admin/impersonation-actions";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import {
@@ -6,6 +10,7 @@ import {
   requirePermission,
 } from "@/lib/admin/permissions";
 import { getTenantDetail } from "@/lib/admin/tenants";
+import { getActiveSubscription } from "@/lib/billing/subscriptions";
 import { FEATURE_KEYS, getTenantFeatures } from "@/lib/features";
 import { prisma } from "@/lib/prisma";
 import {
@@ -31,7 +36,7 @@ export default async function TenantDetailPage({
   const session = await requirePermission("tenants", "view");
   const { id } = await params;
 
-  const [tenant, features, plans, perms] = await Promise.all([
+  const [tenant, features, plans, perms, subscription] = await Promise.all([
     getTenantDetail(id),
     getTenantFeatures(id),
     prisma.plan.findMany({
@@ -39,11 +44,13 @@ export default async function TenantDetailPage({
       orderBy: { name: "asc" },
     }),
     getEffectivePermissions(session.user.id, session.user.role),
+    getActiveSubscription(id),
   ]);
   if (!tenant) notFound();
 
   const canEdit = perms.tenants.edit;
   const canDelete = perms.tenants.delete;
+  const canBilling = perms.billing.edit;
   const isSuperAdmin = session.user.role === "super_admin";
 
   return (
@@ -146,6 +153,93 @@ export default async function TenantDetailPage({
             </form>
           )}
         </div>
+      </section>
+
+      <section className="rounded-lg border border-black/10 p-5 dark:border-white/15">
+        <h2 className="mb-3 text-sm font-medium">Subscription</h2>
+        {subscription ? (
+          <p className="mb-3 text-sm">
+            {subscription.plan?.name ?? "—"} · {subscription.status} ·{" "}
+            {subscription.paymentMethod}
+            {subscription.endDate
+              ? ` · ends ${subscription.endDate.toLocaleDateString()}`
+              : ""}
+          </p>
+        ) : (
+          <p className="mb-3 text-sm text-zinc-500 dark:text-zinc-400">
+            No active subscription.
+          </p>
+        )}
+        {canBilling && (
+          <div className="flex flex-col gap-3">
+            <form
+              action={activateSubscriptionAction}
+              className="flex flex-wrap items-end gap-2"
+            >
+              <input type="hidden" name="tenantId" value={tenant.id} />
+              <label className="flex flex-col gap-1 text-xs">
+                <span className="text-zinc-500 dark:text-zinc-400">Plan</span>
+                <select
+                  name="planId"
+                  defaultValue={tenant.planId ?? ""}
+                  className={selectClass}
+                >
+                  <option value="" className="text-black">
+                    — none —
+                  </option>
+                  {plans.map((plan) => (
+                    <option key={plan.id} value={plan.id} className="text-black">
+                      {plan.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 text-xs">
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  Period (days)
+                </span>
+                <input
+                  name="periodDays"
+                  type="number"
+                  min={1}
+                  defaultValue={30}
+                  className={selectClass}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs">
+                <span className="text-zinc-500 dark:text-zinc-400">Method</span>
+                <select
+                  name="paymentMethod"
+                  defaultValue="manual"
+                  className={selectClass}
+                >
+                  <option value="manual" className="text-black">
+                    manual
+                  </option>
+                  <option value="auto" className="text-black">
+                    auto
+                  </option>
+                </select>
+              </label>
+              <button type="submit" className={buttonClass}>
+                Activate / renew
+              </button>
+            </form>
+            {subscription && (
+              <form action={cancelSubscriptionAction}>
+                <input
+                  type="hidden"
+                  name="subscriptionId"
+                  value={subscription.id}
+                />
+                <input type="hidden" name="tenantId" value={tenant.id} />
+                <button type="submit" className={buttonClass}>
+                  Cancel subscription
+                </button>
+              </form>
+            )}
+          </div>
+        )}
       </section>
 
       <section>
