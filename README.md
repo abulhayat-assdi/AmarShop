@@ -99,9 +99,24 @@ Health check: http://localhost:3000/api/health
 └── AmarShop_Project_Spec.md # Product specification (source of truth)
 ```
 
+## Storage & backups
+
+Uploaded images are stored on the VPS (spec §7.1) under `UPLOAD_DIR`
+(default `<project>/uploads`; `/app/uploads` in Docker, on a persistent volume).
+Uploads are optimized to WebP with Sharp on upload and served by the
+`/uploads/<schema>/<file>` route (a Cloudflare proxy can cache in front).
+
+Off-server backup to Cloudflare R2 (backup-only, never served) is
+`scripts/backup.sh` — it dumps the database and archives the uploads, then
+uploads both to R2. Run it on the VPS via cron; see the script header for the
+required env vars (`DIRECT_URL`, `R2_*`) and an example crontab entry.
+
 ## Roadmap status
 
-**Phase 1 — Core Foundation.** Module 1 (project scaffold) is complete.
-Modules follow the session breakdown in the spec (§14): Auth + tenant
-provisioning, subdomain routing, block components + templates, per-tenant admin,
-super-admin panel, RBAC, and self-hosted storage.
+**Phase 1 — Core Foundation: all modules code-complete** (runtime/DB testing
+pending a local Docker run). Per the spec §14 session breakdown: project
+scaffold, auth + schema-per-tenant provisioning, subdomain routing, block
+components + TemplateRenderer + starter templates, per-tenant admin panel,
+full super-admin panel, Access Management / RBAC, and self-hosted storage + R2
+backup. Phase 2 (payments, subscriptions, drag-and-drop editor) is next, after
+pilot testing.

@@ -44,6 +44,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Run on everything except API routes, Next internals, and static assets.
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Run on everything except API routes, uploads, Next internals, and static
+  // assets. `/uploads/*` must reach its route handler on any host (not be
+  // rewritten to a tenant path), since product images are served cross-subdomain.
+  matcher: ["/((?!api|uploads|_next/static|_next/image|favicon.ico).*)"],
 };

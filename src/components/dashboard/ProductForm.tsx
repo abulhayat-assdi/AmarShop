@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { saveProduct } from "@/app/dashboard/products/actions";
+import { BlockImage } from "@/components/blocks/BlockImage";
 import type { Product } from "@/lib/tenant/products";
 import {
   PRODUCT_STATUSES,
@@ -17,9 +18,12 @@ export function ProductForm({ product }: { product?: Product }) {
     {},
   );
 
+  const currentImage = product?.images?.[0] ?? "";
+
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-4">
       {product && <input type="hidden" name="productId" value={product.id} />}
+      <input type="hidden" name="existingImage" value={currentImage} />
 
       <label className="flex flex-col gap-1 text-sm">
         <span className="font-medium">Name</span>
@@ -93,6 +97,26 @@ export function ProductForm({ product }: { product?: Product }) {
             </option>
           ))}
         </select>
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm">
+        <span className="font-medium">Image</span>
+        {currentImage && (
+          <BlockImage
+            src={currentImage}
+            alt=""
+            className="mb-1 h-24 w-24 rounded-md object-cover"
+          />
+        )}
+        <input
+          name="image"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="text-sm text-zinc-600 file:mr-3 file:rounded-md file:border file:border-black/15 file:bg-transparent file:px-3 file:py-1.5 file:text-sm dark:text-zinc-400 dark:file:border-white/20"
+        />
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+          JPEG/PNG/WebP/GIF, up to 5&nbsp;MB. Optimized to WebP on upload.
+        </span>
       </label>
 
       {state.error && (

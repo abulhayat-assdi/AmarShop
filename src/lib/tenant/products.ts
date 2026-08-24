@@ -18,6 +18,7 @@ export type Product = {
   stock: number;
   category: string | null;
   status: string;
+  images: string[];
   createdAt: Date;
 };
 
@@ -28,9 +29,10 @@ export type ProductInput = {
   stock: number;
   category: string | null;
   status: string;
+  images: string[];
 };
 
-const PRODUCT_COLUMNS = `id, name, description, price, stock, category, status, created_at AS "createdAt"`;
+const PRODUCT_COLUMNS = `id, name, description, price, stock, category, status, images, created_at AS "createdAt"`;
 
 export async function listProducts(schema: string): Promise<Product[]> {
   assertValidSchemaName(schema);
@@ -58,8 +60,8 @@ export async function createProduct(
   assertValidSchemaName(schema);
   await prisma.$executeRawUnsafe(
     `INSERT INTO "${schema}"."products"
-       (id, name, description, price, stock, category, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+       (id, name, description, price, stock, category, status, images)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)`,
     randomUUID(),
     input.name,
     input.description,
@@ -67,6 +69,7 @@ export async function createProduct(
     input.stock,
     input.category,
     input.status,
+    JSON.stringify(input.images),
   );
 }
 
@@ -79,7 +82,7 @@ export async function updateProduct(
   await prisma.$executeRawUnsafe(
     `UPDATE "${schema}"."products"
        SET name = $2, description = $3, price = $4, stock = $5,
-           category = $6, status = $7, updated_at = now()
+           category = $6, status = $7, images = $8::jsonb, updated_at = now()
      WHERE id = $1`,
     id,
     input.name,
@@ -88,6 +91,7 @@ export async function updateProduct(
     input.stock,
     input.category,
     input.status,
+    JSON.stringify(input.images),
   );
 }
 

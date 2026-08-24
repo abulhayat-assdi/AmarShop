@@ -31,6 +31,15 @@ const envSchema = z.object({
   // Super-admin bootstrap credentials — consumed only by the seed script.
   SUPER_ADMIN_EMAIL: z.string().trim().toLowerCase().email().optional(),
   SUPER_ADMIN_PASSWORD: z.string().min(8).optional(),
+
+  // Self-hosted file storage (spec §7.1). Defaults to <cwd>/uploads if unset.
+  UPLOAD_DIR: z.string().min(1).optional(),
+
+  // Cloudflare R2 backup (spec §7.1, §8) — consumed only by the backup script.
+  R2_ENDPOINT: z.string().min(1).optional(),
+  R2_BUCKET: z.string().min(1).optional(),
+  R2_ACCESS_KEY_ID: z.string().min(1).optional(),
+  R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

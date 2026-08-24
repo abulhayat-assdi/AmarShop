@@ -63,6 +63,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Persistent self-hosted uploads dir (mount a volume here in production).
+ENV UPLOAD_DIR=/app/uploads
+RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
+
 USER nextjs
 EXPOSE 3000
 CMD ["node", "server.js"]

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BlockImage } from "@/components/blocks/BlockImage";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { requireTenantContext } from "@/lib/auth/current-tenant";
 import { listProducts } from "@/lib/tenant/products";
@@ -47,7 +48,20 @@ export default async function ProductsPage() {
                   key={product.id}
                   className="border-b border-black/5 last:border-0 dark:border-white/10"
                 >
-                  <td className="px-4 py-3 font-medium">{product.name}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      {product.images[0] ? (
+                        <BlockImage
+                          src={product.images[0]}
+                          alt=""
+                          className="h-9 w-9 shrink-0 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="h-9 w-9 shrink-0 rounded bg-black/5 dark:bg-white/5" />
+                      )}
+                      <span className="font-medium">{product.name}</span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">
                     {product.category ?? "—"}
                   </td>

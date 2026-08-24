@@ -29,15 +29,18 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}
       DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      # Self-hosted uploads live on a persistent volume (spec §7.1).
+      UPLOAD_DIR: /app/uploads
     ports:
       # In production this sits behind Traefik/Coolify; exposed here for local dev.
       - "3000:3000"
     volumes:
       # Bind-mount source for hot reload, but keep container-managed
-      # node_modules and .next (anonymous volumes shadow the host paths).
+      # node_modules, .next, and uploads (named/anonymous volumes shadow host paths).
       - .:/app
       - /app/node_modules
       - /app/.next
+      - uploads_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -109,3 +112,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  uploads_data:
