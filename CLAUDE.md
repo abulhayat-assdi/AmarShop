@@ -76,8 +76,17 @@ docker compose up    # full local stack (app + postgres + pgbouncer + redis)
   merchant credentials, §13); subscription lifecycle + grace/suspend + sweep
   (`src/lib/billing/subscriptions.ts`); `/admin/billing` + tenant-detail
   subscription controls, gated by a new `billing` RBAC resource, audit-logged.
+- Automated billing sweep — **done** (`POST /api/cron/sweep`, CRON_SECRET).
+- Storefront + checkout (COD) — **done**. Customer-facing shop/product/cart/
+  checkout/order under the tenant site (`src/app/s/[subdomain]/*`,
+  `src/components/storefront/*`); cart is client localStorage (per-subdomain
+  origin); checkout is server-authoritative (schema from host, prices re-read
+  from DB) via `placeOrder` (`src/lib/tenant/checkout.ts`). Online payment plugs
+  into the existing gateway abstraction once live.
 - Remaining: live bKash/SSLCommerz integration (needs merchant creds + DCO),
-  automated billing sweep (cron/BullMQ), and pilot test.
+  and pilot test. Still TODO across Phase 2/3: AI editor, more templates, Redis
+  caching/ISR, i18n (bn/en), 2FA, RLS, email/SMS, automated tests, custom-domain
+  SSL + monitoring (infra).
 
 Known npm-audit items (accepted): `deepmerge-ts` (Prisma 7 CLI, build-time only)
 and `uuid` (via Puck, not exploited in its usage); both would require breaking
