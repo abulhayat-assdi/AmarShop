@@ -1,4 +1,4 @@
-import { requireSuperAdmin } from "@/lib/admin/require-super-admin";
+import { requireStaff } from "@/lib/admin/permissions";
 import { getPlatformStats } from "@/lib/admin/stats";
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
@@ -11,7 +11,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 }
 
 export default async function AdminOverviewPage() {
-  await requireSuperAdmin();
+  await requireStaff();
   const stats = await getPlatformStats();
 
   return (

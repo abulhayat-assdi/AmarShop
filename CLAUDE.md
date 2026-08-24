@@ -54,7 +54,7 @@ docker compose up    # full local stack (app + postgres + pgbouncer + redis)
 4. Block components + TemplateRenderer + starter templates — **done** (code complete; runtime test pending local Docker)
 5. Per-tenant admin panel (product/order/inventory) — **done** (code complete; runtime test pending local Docker)
 6. Full super-admin panel — **done** (code complete; runtime test pending local Docker)
-7. Access Management / RBAC (roles, permissions, audit log)
+7. Access Management / RBAC (roles, permissions, audit log) — **done** (code complete; runtime test pending local Docker)
 8. Self-hosted storage (Sharp upload) + R2 backup
 
 Do not start Phase 2/3 until Phase 1 is complete and pilot-tested.

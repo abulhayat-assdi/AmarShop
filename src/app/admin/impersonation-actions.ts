@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { logAudit } from "@/lib/admin/audit";
 import {
   clearImpersonation,
   setImpersonation,
@@ -13,7 +14,7 @@ import { prisma } from "@/lib/prisma";
  * impersonation cookie, and the target tenant must exist.
  */
 export async function startImpersonationAction(formData: FormData) {
-  await requireSuperAdmin();
+  const session = await requireSuperAdmin();
   const tenantId = String(formData.get("tenantId") ?? "");
   if (!tenantId) return;
 
@@ -24,6 +25,12 @@ export async function startImpersonationAction(formData: FormData) {
   if (!tenant) return;
 
   await setImpersonation(tenant.id);
+  await logAudit({
+    actorUserId: session.user.id,
+    action: "impersonation.start",
+    resource: "tenants",
+    targetId: tenant.id,
+  });
   redirect("/dashboard");
 }
 

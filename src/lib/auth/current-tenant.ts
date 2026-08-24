@@ -26,6 +26,7 @@ export type TenantContext = EffectiveTenant & {
 export async function resolveEffectiveTenant(): Promise<{
   authenticated: boolean;
   isSuperAdmin: boolean;
+  role: string;
   tenant: EffectiveTenant | null;
   userId: string;
   email: string;
@@ -35,6 +36,7 @@ export async function resolveEffectiveTenant(): Promise<{
     return {
       authenticated: false,
       isSuperAdmin: false,
+      role: "",
       tenant: null,
       userId: "",
       email: "",
@@ -44,6 +46,7 @@ export async function resolveEffectiveTenant(): Promise<{
   const base = {
     authenticated: true,
     isSuperAdmin: session.user.role === "super_admin",
+    role: session.user.role,
     userId: session.user.id,
     email: session.user.email ?? "",
   };
@@ -95,7 +98,10 @@ export async function requireTenantContext(): Promise<TenantContext> {
   const resolved = await resolveEffectiveTenant();
   if (!resolved.authenticated) redirect("/login");
   if (!resolved.tenant) {
-    redirect(resolved.isSuperAdmin ? "/admin" : "/dashboard");
+    // Staff (super_admin / admin / editor) belong in the admin area, not a
+    // tenant dashboard; anyone else without a tenant goes to /dashboard.
+    const isStaff = ["super_admin", "admin", "editor"].includes(resolved.role);
+    redirect(isStaff ? "/admin" : "/dashboard");
   }
   return {
     ...resolved.tenant,

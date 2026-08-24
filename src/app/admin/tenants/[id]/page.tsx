@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 import { startImpersonationAction } from "@/app/admin/impersonation-actions";
 import { ConfirmButton } from "@/components/ConfirmButton";
+import {
+  getEffectivePermissions,
+  requirePermission,
+} from "@/lib/admin/permissions";
 import { getTenantDetail } from "@/lib/admin/tenants";
-import { requireSuperAdmin } from "@/lib/admin/require-super-admin";
 import { FEATURE_KEYS, getTenantFeatures } from "@/lib/features";
 import { prisma } from "@/lib/prisma";
 import {
@@ -15,7 +18,7 @@ import {
 
 const TENANT_STATUSES = ["active", "suspended", "trial"] as const;
 
-const saveButtonClass =
+const buttonClass =
   "rounded-md border border-black/15 px-3 py-1.5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10";
 const selectClass =
   "rounded-md border border-black/15 bg-transparent px-2 py-1.5 text-sm dark:border-white/20";
@@ -25,18 +28,23 @@ export default async function TenantDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireSuperAdmin();
+  const session = await requirePermission("tenants", "view");
   const { id } = await params;
 
-  const [tenant, features, plans] = await Promise.all([
+  const [tenant, features, plans, perms] = await Promise.all([
     getTenantDetail(id),
     getTenantFeatures(id),
     prisma.plan.findMany({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
+    getEffectivePermissions(session.user.id, session.user.role),
   ]);
   if (!tenant) notFound();
+
+  const canEdit = perms.tenants.edit;
+  const canDelete = perms.tenants.delete;
+  const isSuperAdmin = session.user.role === "super_admin";
 
   return (
     <div className="flex flex-col gap-8">
@@ -49,63 +57,73 @@ export default async function TenantDetailPage({
             {tenant.subdomain} · {tenant.siteType}
           </p>
         </div>
-        <form action={startImpersonationAction}>
-          <input type="hidden" name="tenantId" value={tenant.id} />
-          <button type="submit" className={saveButtonClass}>
-            Impersonate
-          </button>
-        </form>
+        {isSuperAdmin && (
+          <form action={startImpersonationAction}>
+            <input type="hidden" name="tenantId" value={tenant.id} />
+            <button type="submit" className={buttonClass}>
+              Impersonate
+            </button>
+          </form>
+        )}
       </div>
 
       <section className="grid gap-6 sm:grid-cols-2">
         <div className="rounded-lg border border-black/10 p-5 dark:border-white/15">
           <h2 className="mb-3 text-sm font-medium">Status</h2>
-          <form action={setStatusAction} className="flex items-center gap-2">
-            <input type="hidden" name="tenantId" value={tenant.id} />
-            <select
-              name="status"
-              defaultValue={tenant.status}
-              className={selectClass}
-            >
-              {TENANT_STATUSES.map((status) => (
-                <option key={status} value={status} className="text-black">
-                  {status}
-                </option>
-              ))}
-            </select>
-            <button type="submit" className={saveButtonClass}>
-              Save
-            </button>
-          </form>
+          {canEdit ? (
+            <form action={setStatusAction} className="flex items-center gap-2">
+              <input type="hidden" name="tenantId" value={tenant.id} />
+              <select
+                name="status"
+                defaultValue={tenant.status}
+                className={selectClass}
+              >
+                {TENANT_STATUSES.map((status) => (
+                  <option key={status} value={status} className="text-black">
+                    {status}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" className={buttonClass}>
+                Save
+              </button>
+            </form>
+          ) : (
+            <p className="text-sm">{tenant.status}</p>
+          )}
         </div>
 
         <div className="rounded-lg border border-black/10 p-5 dark:border-white/15">
           <h2 className="mb-3 text-sm font-medium">Plan</h2>
-          <form action={setPlanAction} className="flex items-center gap-2">
-            <input type="hidden" name="tenantId" value={tenant.id} />
-            <select
-              name="planId"
-              defaultValue={tenant.planId ?? ""}
-              className={selectClass}
-            >
-              <option value="" className="text-black">
-                — none —
-              </option>
-              {plans.map((plan) => (
-                <option key={plan.id} value={plan.id} className="text-black">
-                  {plan.name}
+          {canEdit ? (
+            <form action={setPlanAction} className="flex items-center gap-2">
+              <input type="hidden" name="tenantId" value={tenant.id} />
+              <select
+                name="planId"
+                defaultValue={tenant.planId ?? ""}
+                className={selectClass}
+              >
+                <option value="" className="text-black">
+                  — none —
                 </option>
-              ))}
-            </select>
-            <button type="submit" className={saveButtonClass}>
-              Save
-            </button>
-          </form>
+                {plans.map((plan) => (
+                  <option key={plan.id} value={plan.id} className="text-black">
+                    {plan.name}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" className={buttonClass}>
+                Save
+              </button>
+            </form>
+          ) : (
+            <p className="text-sm">{tenant.plan?.name ?? "—"}</p>
+          )}
         </div>
       </section>
 
       <section className="rounded-lg border border-black/10 p-5 dark:border-white/15">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-sm font-medium">Own payment gateway</h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -114,17 +132,19 @@ export default async function TenantDetailPage({
                 : "Not approved — the tenant uses the platform gateway."}
             </p>
           </div>
-          <form action={setGatewayAction}>
-            <input type="hidden" name="tenantId" value={tenant.id} />
-            <input
-              type="hidden"
-              name="approved"
-              value={tenant.ownGatewayApproved ? "false" : "true"}
-            />
-            <button type="submit" className={saveButtonClass}>
-              {tenant.ownGatewayApproved ? "Revoke" : "Approve"}
-            </button>
-          </form>
+          {canEdit && (
+            <form action={setGatewayAction}>
+              <input type="hidden" name="tenantId" value={tenant.id} />
+              <input
+                type="hidden"
+                name="approved"
+                value={tenant.ownGatewayApproved ? "false" : "true"}
+              />
+              <button type="submit" className={buttonClass}>
+                {tenant.ownGatewayApproved ? "Revoke" : "Approve"}
+              </button>
+            </form>
+          )}
         </div>
       </section>
 
@@ -147,18 +167,20 @@ export default async function TenantDetailPage({
                 >
                   {features[key] ? "on" : "off"}
                 </span>
-                <form action={setFeatureAction}>
-                  <input type="hidden" name="tenantId" value={tenant.id} />
-                  <input type="hidden" name="featureKey" value={key} />
-                  <input
-                    type="hidden"
-                    name="enabled"
-                    value={features[key] ? "false" : "true"}
-                  />
-                  <button type="submit" className={saveButtonClass}>
-                    {features[key] ? "Disable" : "Enable"}
-                  </button>
-                </form>
+                {canEdit && (
+                  <form action={setFeatureAction}>
+                    <input type="hidden" name="tenantId" value={tenant.id} />
+                    <input type="hidden" name="featureKey" value={key} />
+                    <input
+                      type="hidden"
+                      name="enabled"
+                      value={features[key] ? "false" : "true"}
+                    />
+                    <button type="submit" className={buttonClass}>
+                      {features[key] ? "Disable" : "Enable"}
+                    </button>
+                  </form>
+                )}
               </div>
             </li>
           ))}
@@ -182,24 +204,26 @@ export default async function TenantDetailPage({
         </ul>
       </section>
 
-      <section className="rounded-lg border border-red-500/40 bg-red-500/5 p-5">
-        <h2 className="mb-1 text-sm font-medium text-red-700 dark:text-red-400">
-          Delete tenant
-        </h2>
-        <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
-          Permanently removes this tenant, its users, and its entire schema.
-          This cannot be undone.
-        </p>
-        <form action={deleteTenantAction}>
-          <input type="hidden" name="tenantId" value={tenant.id} />
-          <ConfirmButton
-            message={`Permanently delete "${tenant.name}" and all its data? This cannot be undone.`}
-            className="rounded-md border border-red-500/50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-500/10 dark:text-red-400"
-          >
-            Delete permanently
-          </ConfirmButton>
-        </form>
-      </section>
+      {canDelete && (
+        <section className="rounded-lg border border-red-500/40 bg-red-500/5 p-5">
+          <h2 className="mb-1 text-sm font-medium text-red-700 dark:text-red-400">
+            Delete tenant
+          </h2>
+          <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
+            Permanently removes this tenant, its users, and its entire schema.
+            This cannot be undone.
+          </p>
+          <form action={deleteTenantAction}>
+            <input type="hidden" name="tenantId" value={tenant.id} />
+            <ConfirmButton
+              message={`Permanently delete "${tenant.name}" and all its data? This cannot be undone.`}
+              className="rounded-md border border-red-500/50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-500/10 dark:text-red-400"
+            >
+              Delete permanently
+            </ConfirmButton>
+          </form>
+        </section>
+      )}
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { requireSuperAdmin } from "@/lib/admin/require-super-admin";
+import { requirePermission } from "@/lib/admin/permissions";
 import { listTenants } from "@/lib/admin/tenants";
 
 export default async function TenantsPage() {
-  await requireSuperAdmin();
+  await requirePermission("tenants", "view");
   const tenants = await listTenants();
 
   return (

@@ -2,15 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireSuperAdmin } from "@/lib/admin/require-super-admin";
+import { logAudit } from "@/lib/admin/audit";
+import { requirePermission } from "@/lib/admin/permissions";
 import { setTemplateActive, updateTemplateMeta } from "@/lib/admin/templates";
 
 export async function toggleTemplateActiveAction(formData: FormData) {
-  await requireSuperAdmin();
+  const session = await requirePermission("templates", "edit");
   const id = String(formData.get("templateId") ?? "");
   if (!id) return;
 
-  await setTemplateActive(id, formData.get("isActive") === "true");
+  const isActive = formData.get("isActive") === "true";
+  await setTemplateActive(id, isActive);
+  await logAudit({
+    actorUserId: session.user.id,
+    action: "template.active",
+    resource: "templates",
+    targetId: id,
+    meta: { isActive },
+  });
   revalidatePath("/admin/templates");
 }
 
@@ -20,7 +29,7 @@ const metaSchema = z.object({
 });
 
 export async function updateTemplateMetaAction(formData: FormData) {
-  await requireSuperAdmin();
+  const session = await requirePermission("templates", "edit");
   const id = String(formData.get("templateId") ?? "");
   const parsed = metaSchema.safeParse({
     name: formData.get("name"),
@@ -29,5 +38,12 @@ export async function updateTemplateMetaAction(formData: FormData) {
   if (!id || !parsed.success) return;
 
   await updateTemplateMeta(id, parsed.data);
+  await logAudit({
+    actorUserId: session.user.id,
+    action: "template.meta",
+    resource: "templates",
+    targetId: id,
+    meta: parsed.data,
+  });
   revalidatePath("/admin/templates");
 }

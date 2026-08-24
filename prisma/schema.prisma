@@ -54,6 +54,7 @@ model User {
   role         UserRole @default(user)
   tenantId     String?  @map("tenant_id")
   tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  staffMember  StaffMember? @relation("StaffUser")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -117,6 +118,49 @@ model Template {
   @@index([siteType])
   @@index([category])
   @@map("templates")
+}
+
+/// A super-admin's staff member (admin/editor) — the User carries the role, this
+/// row records who created them and owns their granular permissions (spec §6.7).
+model StaffMember {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  user        User     @relation("StaffUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdById String?  @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  permissions Permission[]
+
+  @@map("staff_members")
+}
+
+/// Per-staff, per-resource permission (page/action key). Enforced server-side
+/// on every protected route/action (spec §6.7).
+model Permission {
+  id        String      @id @default(cuid())
+  staffId   String      @map("staff_id")
+  staff     StaffMember @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  resource  String
+  canView   Boolean     @default(false) @map("can_view")
+  canEdit   Boolean     @default(false) @map("can_edit")
+  canDelete Boolean     @default(false) @map("can_delete")
+
+  @@unique([staffId, resource])
+  @@map("permissions")
+}
+
+/// Audit trail of admin actions — who did what (spec §6.7, §8).
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?  @map("actor_user_id")
+  action      String
+  resource    String
+  targetId    String?  @map("target_id")
+  meta        Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("audit_log")
 }
 
 /// Subscription tier. Prices are placeholders until finalized (spec §13);
