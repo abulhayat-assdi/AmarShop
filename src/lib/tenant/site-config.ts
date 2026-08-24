@@ -45,3 +45,23 @@ export async function setSiteConfig(
     JSON.stringify(blocks),
   );
 }
+
+/**
+ * Updates only the tenant's block list (from the editor, spec §5.7), preserving
+ * the linked template_id.
+ */
+export async function updateSiteBlocks(
+  schemaName: string,
+  blocks: unknown,
+): Promise<void> {
+  assertValidSchemaName(schemaName);
+  await prisma.$executeRawUnsafe(
+    `INSERT INTO "${schemaName}"."site_config" (id, blocks_json, updated_at)
+     VALUES ($1, $2::jsonb, now())
+     ON CONFLICT (id) DO UPDATE
+       SET blocks_json = EXCLUDED.blocks_json,
+           updated_at = now()`,
+    SITE_CONFIG_ID,
+    JSON.stringify(blocks),
+  );
+}

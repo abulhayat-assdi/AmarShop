@@ -6,6 +6,7 @@ import { stopImpersonationAction } from "@/app/admin/impersonation-actions";
 
 const NAV = [
   { href: "/dashboard", label: "Overview" },
+  { href: "/dashboard/editor", label: "Edit site" },
   { href: "/dashboard/products", label: "Products" },
   { href: "/dashboard/orders", label: "Orders" },
   { href: "/dashboard/inventory", label: "Inventory" },

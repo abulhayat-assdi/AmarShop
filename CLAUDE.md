@@ -57,8 +57,22 @@ docker compose up    # full local stack (app + postgres + pgbouncer + redis)
 7. Access Management / RBAC (roles, permissions, audit log) — **done** (code complete; runtime test pending local Docker)
 8. Self-hosted storage (Sharp upload) + R2 backup — **done** (code complete; runtime test pending local Docker)
 
-**Phase 1 is code-complete (M1–M8).** Do not start Phase 2/3 until Phase 1 is
-pilot-tested (needs a local Docker run: `docker compose up` → `prisma:deploy` →
-`db:seed`).
+**Phase 1 is code-complete (M1–M8).** Phase 1 has NOT been pilot-tested yet
+(needs a local Docker run: `docker compose up` → `prisma:deploy` → `db:seed`).
+
+## Phase 2 (in progress, user opted to start before pilot testing)
+
+- Drag-and-drop editor — **done** (code complete). Built on **Puck**
+  (`@measured/puck`, React-native, not GrapesJS) because it edits our structured
+  block JSON directly — no raw code (spec §1.4). `/dashboard/editor`; config maps
+  our 9 blocks to Puck components (`src/lib/editor/puck-config.tsx`); saves via
+  `updateSiteBlocks` after re-validating with `parseBlocks`.
+- Feature flags (`tenant_features` + `hasFeature`) — already delivered in M6.
+- Remaining: payment abstraction (bKash/SSLCommerz), subscription billing +
+  grace/suspend, pilot test. Payment needs merchant credentials + §13 decisions.
+
+Known npm-audit items (accepted): `deepmerge-ts` (Prisma 7 CLI, build-time only)
+and `uuid` (via Puck, not exploited in its usage); both would require breaking
+downgrades of core deps to "fix".
 
 @AGENTS.md
