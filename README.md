@@ -111,6 +111,18 @@ Off-server backup to Cloudflare R2 (backup-only, never served) is
 uploads both to R2. Run it on the VPS via cron; see the script header for the
 required env vars (`DIRECT_URL`, `R2_*`) and an example crontab entry.
 
+## Scheduled jobs
+
+The subscription grace/suspend sweep (spec §6.4) runs via `POST /api/cron/sweep`,
+guarded by `CRON_SECRET`. Trigger it from the VPS crontab, e.g. daily:
+
+```bash
+0 3 * * * curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" \
+  https://amarshop.com/api/cron/sweep
+```
+
+A super-admin can also run it on demand from `/admin/billing`.
+
 ## Roadmap status
 
 **Phase 1 — Core Foundation: all modules code-complete** (runtime/DB testing

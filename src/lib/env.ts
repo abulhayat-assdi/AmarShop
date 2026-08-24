@@ -44,6 +44,10 @@ const envSchema = z.object({
   // Secret used to encrypt payment gateway credentials at rest (spec §6.2, §8).
   // Required only when configuring a gateway; min 16 chars.
   ENCRYPTION_KEY: z.string().min(16).optional(),
+
+  // Bearer token guarding the cron endpoint (/api/cron/sweep). Optional; when
+  // unset the endpoint is disabled.
+  CRON_SECRET: z.string().min(16).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
