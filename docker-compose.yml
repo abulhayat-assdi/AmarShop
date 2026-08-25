@@ -77,6 +77,8 @@ services:
       DB_USER: ${POSTGRES_USER:?required}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?required}
       DB_NAME: ${POSTGRES_DB:?required}
+      # The image defaults to listening on 5432; our URLs use 6432 for PgBouncer.
+      LISTEN_PORT: "6432"
       POOL_MODE: transaction
       AUTH_TYPE: scram-sha-256
       MAX_CLIENT_CONN: "100"
