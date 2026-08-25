@@ -3,7 +3,7 @@
 import type { Breakpoint, Responsive } from "@/lib/elements/responsive";
 import { resolveResponsive } from "@/lib/elements/responsive";
 import type { ElementNode } from "@/lib/elements/tree";
-import { ICON_NAMES, SHAPES } from "@/lib/elements/widgets";
+import { type IconName, SHAPES } from "@/lib/elements/widgets";
 import {
   CheckboxInput,
   Field,
@@ -12,6 +12,8 @@ import {
   SelectInput,
   TextInput,
 } from "./controls";
+import { IconPicker } from "./IconPicker";
+import { MediaField } from "./MediaField";
 
 /**
  * The Content tab of the inspector (spec §5.7) — each widget's own props.
@@ -159,10 +161,11 @@ export function ContentPanel({
     case "Image":
       return (
         <Section title="Image">
-          <Field label="Image URL" hint="https://… or /uploads/…">
-            <TextInput
+          <Field label="Image" hint="Upload a file, or paste a URL.">
+            <MediaField
               value={get("url", "")}
               onChange={(value) => set("url", value)}
+              accept="image/*"
             />
           </Field>
           <Field
@@ -226,11 +229,10 @@ export function ContentPanel({
             />
           </Field>
           <Field label="Icon (optional)">
-            <SelectInput
-              value={get<string | undefined>("icon", undefined)}
-              options={ICON_NAMES}
+            <IconPicker
+              value={get<IconName | undefined>("icon", undefined)}
               onChange={(value) => set("icon", value)}
-              allowEmpty
+              allowNone
             />
           </Field>
           <Field label="Icon position">
@@ -298,9 +300,8 @@ export function ContentPanel({
       return (
         <Section title="Icon">
           <Field label="Icon">
-            <SelectInput
-              value={get<string>("name", "star")}
-              options={ICON_NAMES}
+            <IconPicker
+              value={get<IconName>("name", "star")}
               onChange={(value) => set("name", value ?? "star")}
             />
           </Field>
@@ -358,12 +359,14 @@ export function ContentPanel({
       return (
         <Section title="Video">
           <Field
-            label="Video URL"
-            hint="A YouTube or Vimeo link, or a direct .mp4 URL."
+            label="Video"
+            hint="Upload an MP4/WebM file, or paste a YouTube or Vimeo link."
           >
-            <TextInput
+            <MediaField
               value={get("url", "")}
               onChange={(value) => set("url", value)}
+              accept="video/mp4,video/webm"
+              kind="video"
             />
           </Field>
           <Field label="Aspect ratio">

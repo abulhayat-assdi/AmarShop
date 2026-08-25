@@ -20,7 +20,9 @@ type TenantSiteParams = {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">{children}</main>
+    <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
+      {children}
+    </main>
   );
 }
 
@@ -109,7 +111,7 @@ export default async function TenantSitePage({ params }: TenantSiteParams) {
                     {formatTaka(product.price)}
                   </p>
                   <AddToCartButton
-                    className="mt-auto rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                    className="bg-foreground text-background mt-auto rounded-md px-3 py-1.5 text-sm font-medium transition-opacity hover:opacity-90"
                     item={{
                       productId: product.id,
                       name: product.name,
@@ -180,7 +182,9 @@ export default async function TenantSitePage({ params }: TenantSiteParams) {
   if (section === "cart") {
     return (
       <Shell>
-        <h1 className="mb-6 text-2xl font-semibold tracking-tight">Your cart</h1>
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight">
+          Your cart
+        </h1>
         <CartView />
       </Shell>
     );

@@ -16,7 +16,7 @@ export function AddToCartButton({
       onClick={() => addItem(item)}
       className={
         className ??
-        "rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+        "bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
       }
     >
       Add to cart

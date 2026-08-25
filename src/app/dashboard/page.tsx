@@ -39,8 +39,8 @@ export default async function DashboardPage() {
     );
   }
 
-  const [productStats, orderStats, templates, currentBlocks] = await Promise.all(
-    [
+  const [productStats, orderStats, templates, currentBlocks] =
+    await Promise.all([
       getProductStats(schema),
       getOrderStats(schema),
       prisma.template.findMany({
@@ -49,8 +49,7 @@ export default async function DashboardPage() {
         orderBy: { name: "asc" },
       }),
       getSiteConfigBlocks(schema),
-    ],
-  );
+    ]);
   const hasSite = Array.isArray(currentBlocks) && currentBlocks.length > 0;
   const siteUrl = `http://${subdomain}.${env.ROOT_DOMAIN}`;
 
@@ -131,7 +130,8 @@ export default async function DashboardPage() {
           {hasSite ? "Switch template" : "Choose a template"}
         </h2>
         <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
-          Applying a template replaces your layout with a fresh copy you can edit.
+          Applying a template replaces your layout with a fresh copy you can
+          edit.
         </p>
         {templates.length === 0 ? (
           <p className="text-sm text-zinc-500 dark:text-zinc-400">

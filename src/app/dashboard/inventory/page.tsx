@@ -52,7 +52,11 @@ export default async function InventoryPage() {
                       action={setStockAction}
                       className="flex items-center gap-2"
                     >
-                      <input type="hidden" name="productId" value={product.id} />
+                      <input
+                        type="hidden"
+                        name="productId"
+                        value={product.id}
+                      />
                       <input
                         name="stock"
                         type="number"

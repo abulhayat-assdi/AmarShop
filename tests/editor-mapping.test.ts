@@ -6,9 +6,7 @@ describe("editor mapping", () => {
     const blocks = [{ type: "Footer", data: { text: "hi", links: [] } }];
     const puck = blocksToPuckData(blocks);
     expect(puck.content).toHaveLength(1);
-    expect(
-      (puck.content[0].props as Record<string, unknown>).id,
-    ).toBeDefined();
+    expect((puck.content[0].props as Record<string, unknown>).id).toBeDefined();
 
     const back = puckDataToBlocks(puck);
     expect(back[0].type).toBe("Footer");

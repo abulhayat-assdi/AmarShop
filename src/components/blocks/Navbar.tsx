@@ -11,7 +11,7 @@ export function Navbar({ logoText, links }: NavbarData) {
             <li key={i}>
               <Link
                 href={link.href}
-                className="text-zinc-600 hover:text-foreground dark:text-zinc-400"
+                className="hover:text-foreground text-zinc-600 dark:text-zinc-400"
               >
                 {link.label}
               </Link>

@@ -50,7 +50,10 @@ export default async function BillingPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label="Revenue (active)" value={formatPrice(summary.revenue)} />
+        <StatCard
+          label="Revenue (active)"
+          value={formatPrice(summary.revenue)}
+        />
         <StatCard label="Active subs" value={summary.activeSubscriptions} />
         <StatCard label="Past due" value={summary.pastDue} />
         <StatCard label="Active tenants" value={summary.activeTenants} />
@@ -108,8 +111,9 @@ export default async function BillingPage() {
         <section className="rounded-lg border border-black/10 p-6 dark:border-white/15">
           <h2 className="text-lg font-medium">Platform payment gateway</h2>
           <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
-            Shared gateway used by all tenants by default (spec §6.2). Credentials
-            are encrypted at rest; requires ENCRYPTION_KEY to be set.
+            Shared gateway used by all tenants by default (spec §6.2).
+            Credentials are encrypted at rest; requires ENCRYPTION_KEY to be
+            set.
             {gatewayInfo
               ? ` Current: ${gatewayInfo.gateway} (${gatewayInfo.isActive ? "active" : "inactive"}).`
               : " Not configured yet."}
@@ -120,7 +124,11 @@ export default async function BillingPage() {
           >
             <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium">Gateway</span>
-              <select name="gateway" defaultValue="bkash" className={fieldClass}>
+              <select
+                name="gateway"
+                defaultValue="bkash"
+                className={fieldClass}
+              >
                 <option value="bkash" className="text-black">
                   bkash
                 </option>

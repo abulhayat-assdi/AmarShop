@@ -16,7 +16,7 @@ export default function Home() {
       <div className="mt-2 flex gap-3">
         <Link
           href="/signup"
-          className="rounded-md bg-foreground px-5 py-2.5 font-medium text-background transition-opacity hover:opacity-90"
+          className="bg-foreground text-background rounded-md px-5 py-2.5 font-medium transition-opacity hover:opacity-90"
         >
           Create your site
         </Link>

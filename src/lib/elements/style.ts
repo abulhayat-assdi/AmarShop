@@ -69,6 +69,8 @@ export const TEXT_TRANSFORMS = [
   "capitalize",
 ] as const;
 export const BORDER_STYLES = ["none", "solid", "dashed", "dotted"] as const;
+export const FONT_STYLES = ["normal", "italic"] as const;
+export const TEXT_DECORATIONS = ["none", "underline", "line-through"] as const;
 export const SHADOW_PRESETS = ["none", "sm", "md", "lg", "xl"] as const;
 export const BACKGROUND_SIZES = ["cover", "contain", "auto"] as const;
 export const BACKGROUND_POSITIONS = [
@@ -148,6 +150,8 @@ export const styleSchema = z
     lineHeight: responsive(num(0.7, 4)),
     letterSpacing: responsive(num(-10, 40)),
     textTransform: responsive(enumToken(TEXT_TRANSFORMS)),
+    fontStyle: responsive(enumToken(FONT_STYLES)),
+    textDecoration: responsive(enumToken(TEXT_DECORATIONS)),
     color: responsive(colorToken),
 
     // Background
@@ -163,8 +167,26 @@ export const styleSchema = z
     borderRadius: responsive(corners),
     shadow: responsive(enumToken(SHADOW_PRESETS)),
     opacity: responsive(num(0, 1)),
+    overflowHidden: responsive(z.boolean().catch(false).optional()),
+    zIndex: responsive(num(-50, 999)),
+
+    // Hover state — emitted as a `:hover` rule rather than a separate element.
+    hoverColor: responsive(colorToken),
+    hoverBackgroundColor: responsive(colorToken),
+    hoverBorderColor: responsive(colorToken),
+    hoverOpacity: responsive(num(0, 1)),
+    /** Transition duration in ms, applied to the hoverable properties. */
+    transition: responsive(num(0, 2000)),
   })
   .partial();
+
+/** Style keys whose declarations belong in the `:hover` rule. */
+export const HOVER_KEYS = [
+  "hoverColor",
+  "hoverBackgroundColor",
+  "hoverBorderColor",
+  "hoverOpacity",
+] as const;
 
 export type ElementStyle = z.infer<typeof styleSchema>;
 

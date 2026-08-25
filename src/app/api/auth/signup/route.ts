@@ -2,7 +2,10 @@ import { Prisma } from "@prisma/client";
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { dropTenantSchema, provisionTenantSchema } from "@/lib/tenant/provision";
+import {
+  dropTenantSchema,
+  provisionTenantSchema,
+} from "@/lib/tenant/provision";
 import {
   isReservedSubdomain,
   isValidSubdomain,
@@ -63,7 +66,9 @@ export async function POST(request: Request) {
   }
   if (subdomainTaken) {
     return NextResponse.json(
-      { error: `The address "${subdomain}" is taken. Please choose a different shop name.` },
+      {
+        error: `The address "${subdomain}" is taken. Please choose a different shop name.`,
+      },
       { status: 409 },
     );
   }
@@ -107,7 +112,9 @@ export async function POST(request: Request) {
       error.code === "P2002"
     ) {
       return NextResponse.json(
-        { error: "This email or shop address was just taken. Please try again." },
+        {
+          error: "This email or shop address was just taken. Please try again.",
+        },
         { status: 409 },
       );
     }

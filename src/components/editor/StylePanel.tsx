@@ -10,8 +10,10 @@ import {
   FLEX_ALIGNMENTS,
   FLEX_JUSTIFY,
   FONT_FAMILIES,
+  FONT_STYLES,
   SHADOW_PRESETS,
   TEXT_ALIGNS,
+  TEXT_DECORATIONS,
   TEXT_TRANSFORMS,
 } from "@/lib/elements/style";
 import type { ElementNode } from "@/lib/elements/tree";
@@ -25,6 +27,7 @@ import {
   SelectInput,
   SidesInput,
 } from "./controls";
+import { MediaField } from "./MediaField";
 
 /**
  * The Style tab of the inspector (spec §5.7).
@@ -333,6 +336,36 @@ export function StylePanel({
           );
         })()}
         {(() => {
+          const f = field<string>("fontStyle");
+          return (
+            <Field label="Style" inherited={f.inherited} onClear={f.onClear}>
+              <SelectInput
+                value={f.value}
+                options={FONT_STYLES}
+                onChange={f.set}
+                allowEmpty
+              />
+            </Field>
+          );
+        })()}
+        {(() => {
+          const f = field<string>("textDecoration");
+          return (
+            <Field
+              label="Decoration"
+              inherited={f.inherited}
+              onClear={f.onClear}
+            >
+              <SelectInput
+                value={f.value}
+                options={TEXT_DECORATIONS}
+                onChange={f.set}
+                allowEmpty
+              />
+            </Field>
+          );
+        })()}
+        {(() => {
           const f = field<string>("color");
           return (
             <Field
@@ -359,16 +392,15 @@ export function StylePanel({
           const f = field<string>("backgroundImage");
           return (
             <Field
-              label="Image URL"
-              hint="https://… or /uploads/…"
+              label="Image"
+              hint="Upload a file, or paste a URL."
               inherited={f.inherited}
               onClear={f.onClear}
             >
-              <input
-                type="text"
+              <MediaField
                 value={f.value ?? ""}
-                onChange={(event) => f.set(event.target.value || undefined)}
-                className="w-full rounded-md border border-black/15 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-black/40 dark:border-white/20"
+                onChange={(value) => f.set(value || undefined)}
+                accept="image/*"
               />
             </Field>
           );

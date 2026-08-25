@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/auth/logout-button";
-import {
-  getEffectivePermissions,
-  requireStaff,
-} from "@/lib/admin/permissions";
+import { getEffectivePermissions, requireStaff } from "@/lib/admin/permissions";
 
 export default async function AdminLayout({
   children,
@@ -18,7 +15,11 @@ export default async function AdminLayout({
   const nav = [
     { href: "/admin", label: "Overview", show: true },
     { href: "/admin/tenants", label: "Tenants", show: perms.tenants.view },
-    { href: "/admin/templates", label: "Templates", show: perms.templates.view },
+    {
+      href: "/admin/templates",
+      label: "Templates",
+      show: perms.templates.view,
+    },
     { href: "/admin/billing", label: "Billing", show: perms.billing.view },
     { href: "/admin/audit", label: "Audit log", show: perms.audit.view },
     { href: "/admin/access", label: "Access", show: isSuperAdmin },
@@ -38,7 +39,7 @@ export default async function AdminLayout({
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-md px-2 py-1.5 text-zinc-600 transition-colors hover:bg-black/5 hover:text-foreground dark:text-zinc-400 dark:hover:bg-white/10"
+              className="hover:text-foreground rounded-md px-2 py-1.5 text-zinc-600 transition-colors hover:bg-black/5 dark:text-zinc-400 dark:hover:bg-white/10"
             >
               {item.label}
             </Link>

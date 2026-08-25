@@ -40,7 +40,9 @@ export default async function AuditPage() {
                     {entry.createdAt.toLocaleString()}
                   </td>
                   <td className="px-4 py-3">{entry.actorEmail}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{entry.action}</td>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    {entry.action}
+                  </td>
                   <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">
                     {entry.resource}
                   </td>

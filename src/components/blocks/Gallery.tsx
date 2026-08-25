@@ -5,7 +5,9 @@ export function Gallery({ heading, images }: GalleryData) {
   return (
     <section className="mx-auto w-full max-w-6xl px-6 py-12">
       {heading && (
-        <h2 className="mb-6 text-2xl font-semibold tracking-tight">{heading}</h2>
+        <h2 className="mb-6 text-2xl font-semibold tracking-tight">
+          {heading}
+        </h2>
       )}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {images.map((image, i) => (

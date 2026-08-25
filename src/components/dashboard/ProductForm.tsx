@@ -13,10 +13,10 @@ const fieldClass =
   "rounded-md border border-black/15 bg-transparent px-3 py-2 outline-none focus:border-black/40 dark:border-white/20 dark:focus:border-white/50";
 
 export function ProductForm({ product }: { product?: Product }) {
-  const [state, formAction, pending] = useActionState<ProductFormState, FormData>(
-    saveProduct,
-    {},
-  );
+  const [state, formAction, pending] = useActionState<
+    ProductFormState,
+    FormData
+  >(saveProduct, {});
 
   const currentImage = product?.images?.[0] ?? "";
 
@@ -126,7 +126,7 @@ export function ProductForm({ product }: { product?: Product }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-1 self-start rounded-md bg-foreground px-4 py-2 font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+        className="bg-foreground text-background mt-1 self-start rounded-md px-4 py-2 font-medium transition-opacity hover:opacity-90 disabled:opacity-60"
       >
         {pending ? "Saving…" : "Save product"}
       </button>

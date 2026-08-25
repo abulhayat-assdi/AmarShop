@@ -32,7 +32,9 @@ function fromEncrypted(
   }
 }
 
-async function tenantOwnGateway(schema: string): Promise<PaymentGateway | null> {
+async function tenantOwnGateway(
+  schema: string,
+): Promise<PaymentGateway | null> {
   assertValidSchemaName(schema);
   const rows = await prisma.$queryRawUnsafe<
     { gateway: string; encrypted_credentials: string | null }[]

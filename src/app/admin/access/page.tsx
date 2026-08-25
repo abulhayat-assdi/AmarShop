@@ -67,7 +67,10 @@ export default async function AccessPage() {
                     </ConfirmButton>
                   </form>
                 </div>
-                <form action={updateStaffAction} className="flex flex-col gap-3">
+                <form
+                  action={updateStaffAction}
+                  className="flex flex-col gap-3"
+                >
                   <input type="hidden" name="staffId" value={member.id} />
                   <PermissionGrid current={current} />
                   <button type="submit" className={`${buttonClass} self-start`}>

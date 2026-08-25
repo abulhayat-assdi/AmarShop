@@ -11,7 +11,11 @@ import {
   updateNode,
   walkTree,
 } from "@/lib/elements/tree";
-import { isContainer, parseWidgetProps, type WidgetType } from "@/lib/elements/widgets";
+import {
+  isContainer,
+  parseWidgetProps,
+  type WidgetType,
+} from "@/lib/elements/widgets";
 
 /**
  * Editor state for the element canvas (spec §5.7).
@@ -39,7 +43,12 @@ export type InsertPosition = "before" | "after" | "inside";
 export type EditorAction =
   | { type: "select"; id: string | null }
   | { type: "setBreakpoint"; breakpoint: Breakpoint }
-  | { type: "add"; widget: WidgetType; targetId?: string | null; position?: InsertPosition }
+  | {
+      type: "add";
+      widget: WidgetType;
+      targetId?: string | null;
+      position?: InsertPosition;
+    }
   | { type: "remove"; id: string }
   | { type: "duplicate"; id: string }
   | { type: "move"; id: string; parentId: string | null; index: number }
@@ -74,7 +83,9 @@ export function createDefaultNode(widget: WidgetType): ElementNode {
         style: {},
       },
     ];
-    node.style = { padding: { base: { top: 48, right: 24, bottom: 48, left: 24 } } };
+    node.style = {
+      padding: { base: { top: 48, right: 24, bottom: 48, left: 24 } },
+    };
   } else if (isContainer(widget)) {
     node.children = [];
   }
@@ -134,9 +145,7 @@ function resolveInsertion(
 function wrapForRoot(node: ElementNode): ElementNode {
   if (node.type === "Section") return node;
   const section = createDefaultNode("Section");
-  section.children = [
-    { ...section.children![0], children: [node] },
-  ];
+  section.children = [{ ...section.children![0], children: [node] }];
   return section;
 }
 
@@ -168,10 +177,7 @@ function commit(
 }
 
 /** The element selected after `id` is removed — its neighbour, else its parent. */
-function selectionAfterRemoval(
-  state: EditorState,
-  id: string,
-): string | null {
+function selectionAfterRemoval(state: EditorState, id: string): string | null {
   if (state.selectedId !== id) return state.selectedId;
   const parent = findParent(state.tree, id);
   const siblings = parent ? (parent.children ?? []) : state.tree;
@@ -225,7 +231,12 @@ export function editorReducer(
     }
 
     case "move": {
-      const next = moveNode(state.tree, action.id, action.parentId, action.index);
+      const next = moveNode(
+        state.tree,
+        action.id,
+        action.parentId,
+        action.index,
+      );
       return next ? commit(state, next) : state;
     }
 

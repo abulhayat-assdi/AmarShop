@@ -188,7 +188,11 @@ export default async function TenantDetailPage({
                     — none —
                   </option>
                   {plans.map((plan) => (
-                    <option key={plan.id} value={plan.id} className="text-black">
+                    <option
+                      key={plan.id}
+                      value={plan.id}
+                      className="text-black"
+                    >
                       {plan.name}
                     </option>
                   ))}

@@ -50,7 +50,11 @@ describe("createDefaultNode", () => {
 
 describe("add", () => {
   it("inserts after the target within its parent", () => {
-    const next = run(page(), { type: "add", widget: "Button", targetId: "h-1" });
+    const next = run(page(), {
+      type: "add",
+      widget: "Button",
+      targetId: "h-1",
+    });
     const ids = findNode(next.tree, "col-1")!.children!.map((n) => n.id);
     expect(ids[0]).toBe("h-1");
     expect(ids[2]).toBe("t-1");
@@ -191,9 +195,27 @@ describe("updateStyle", () => {
   it("clears the override when the value is emptied", () => {
     const next = run(
       page(),
-      { type: "updateStyle", id: "h-1", key: "fontSize", breakpoint: "base", value: 40 },
-      { type: "updateStyle", id: "h-1", key: "fontSize", breakpoint: "mobile", value: 20 },
-      { type: "updateStyle", id: "h-1", key: "fontSize", breakpoint: "mobile", value: "" },
+      {
+        type: "updateStyle",
+        id: "h-1",
+        key: "fontSize",
+        breakpoint: "base",
+        value: 40,
+      },
+      {
+        type: "updateStyle",
+        id: "h-1",
+        key: "fontSize",
+        breakpoint: "mobile",
+        value: 20,
+      },
+      {
+        type: "updateStyle",
+        id: "h-1",
+        key: "fontSize",
+        breakpoint: "mobile",
+        value: "",
+      },
     );
     expect(findNode(next.tree, "h-1")!.style.fontSize).toEqual({ base: 40 });
   });
@@ -201,8 +223,20 @@ describe("updateStyle", () => {
   it("drops the property entirely once every breakpoint is cleared", () => {
     const next = run(
       page(),
-      { type: "updateStyle", id: "h-1", key: "color", breakpoint: "base", value: "#ff0000" },
-      { type: "updateStyle", id: "h-1", key: "color", breakpoint: "base", value: "" },
+      {
+        type: "updateStyle",
+        id: "h-1",
+        key: "color",
+        breakpoint: "base",
+        value: "#ff0000",
+      },
+      {
+        type: "updateStyle",
+        id: "h-1",
+        key: "color",
+        breakpoint: "base",
+        value: "",
+      },
     );
     expect(findNode(next.tree, "h-1")!.style.color).toBeUndefined();
   });
@@ -284,7 +318,9 @@ describe("replaceTree", () => {
               {
                 id: "col-1",
                 type: "Column",
-                children: [{ id: "h-1", type: "Heading", props: { text: "New" } }],
+                children: [
+                  { id: "h-1", type: "Heading", props: { text: "New" } },
+                ],
               },
             ],
           },

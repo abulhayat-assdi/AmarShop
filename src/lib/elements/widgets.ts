@@ -68,8 +68,12 @@ const sectionProps = z
     /** Max content width in px when `boxed`. */
     boxedWidth: z.coerce.number().min(320).max(2400).catch(1152).default(1152),
     /** Stack columns below this breakpoint instead of sitting side by side. */
-    stackOn: z.enum(["never", "tablet", "mobile"]).catch("mobile").default("mobile"),
-    htmlTag: z.enum(["section", "header", "footer", "div", "main"])
+    stackOn: z
+      .enum(["never", "tablet", "mobile"])
+      .catch("mobile")
+      .default("mobile"),
+    htmlTag: z
+      .enum(["section", "header", "footer", "div", "main"])
       .catch("section")
       .default("section"),
   })
@@ -81,7 +85,10 @@ const columnProps = z.object({}).partial().default({});
 const headingProps = z
   .object({
     text: z.string().max(5000).catch("").default("Heading"),
-    level: z.enum(["h1", "h2", "h3", "h4", "h5", "h6"]).catch("h2").default("h2"),
+    level: z
+      .enum(["h1", "h2", "h3", "h4", "h5", "h6"])
+      .catch("h2")
+      .default("h2"),
     href: href.optional(),
   })
   .partial()
@@ -100,7 +107,10 @@ const imageProps = z
     url: mediaUrl,
     alt: z.string().max(500).catch("").default(""),
     href: href.optional(),
-    objectFit: z.enum(["cover", "contain", "fill"]).catch("cover").default("cover"),
+    objectFit: z
+      .enum(["cover", "contain", "fill"])
+      .catch("cover")
+      .default("cover"),
     aspectRatio: z
       .enum(["auto", "1/1", "4/3", "3/2", "16/9", "3/4"])
       .catch("auto")
@@ -124,7 +134,10 @@ const buttonProps = z
 const dividerProps = z
   .object({
     thickness: z.coerce.number().min(1).max(40).catch(1).default(1),
-    style: z.enum(["solid", "dashed", "dotted"]).catch("solid").default("solid"),
+    style: z
+      .enum(["solid", "dashed", "dotted"])
+      .catch("solid")
+      .default("solid"),
     widthPercent: z.coerce.number().min(5).max(100).catch(100).default(100),
   })
   .partial()

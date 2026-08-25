@@ -1,6 +1,10 @@
 "use client";
 
-import { PALETTE_TYPES, WIDGETS, type WidgetType } from "@/lib/elements/widgets";
+import {
+  PALETTE_TYPES,
+  WIDGETS,
+  type WidgetType,
+} from "@/lib/elements/widgets";
 
 /**
  * The widget palette (spec §5.7) — Elementor's ELEMENTS panel.

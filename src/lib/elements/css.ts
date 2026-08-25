@@ -61,10 +61,7 @@ function at<T>(
  * override breakpoints emit only properties that actually differ, keeping the
  * media queries small.
  */
-function declarationsFor(
-  style: ElementStyle,
-  breakpoint: Breakpoint,
-): Decls {
+function declarationsFor(style: ElementStyle, breakpoint: Breakpoint): Decls {
   const decls: Decls = [];
   const only = <T>(key: keyof ElementStyle): T | undefined => {
     const value = at(style[key] as Responsive<T> | undefined, breakpoint);
@@ -119,6 +116,8 @@ function declarationsFor(
   );
   push(decls, "letter-spacing", px(only<number>("letterSpacing")));
   push(decls, "text-transform", only<string>("textTransform"));
+  push(decls, "font-style", only<string>("fontStyle"));
+  push(decls, "text-decoration", only<string>("textDecoration"));
   push(decls, "color", only<string>("color"));
 
   push(decls, "background-color", only<string>("backgroundColor"));
@@ -149,6 +148,51 @@ function declarationsFor(
   const opacity = only<number>("opacity");
   push(decls, "opacity", opacity === undefined ? undefined : String(opacity));
 
+  const overflowHidden = only<boolean>("overflowHidden");
+  if (overflowHidden !== undefined) {
+    push(decls, "overflow", overflowHidden ? "hidden" : "visible");
+  }
+  const zIndex = only<number>("zIndex");
+  if (zIndex !== undefined) {
+    push(decls, "position", "relative");
+    push(decls, "z-index", String(zIndex));
+  }
+
+  // A transition only makes sense alongside a hover state, and is limited to
+  // the properties hover can change.
+  const transition = only<number>("transition");
+  if (transition !== undefined) {
+    push(
+      decls,
+      "transition",
+      `color ${transition}ms, background-color ${transition}ms, border-color ${transition}ms, opacity ${transition}ms`,
+    );
+  }
+
+  return decls;
+}
+
+/** Declarations for the element's `:hover` rule. */
+function hoverDeclarationsFor(
+  style: ElementStyle,
+  breakpoint: Breakpoint,
+): Decls {
+  const decls: Decls = [];
+  const only = <T>(key: keyof ElementStyle): T | undefined => {
+    const value = at(style[key] as Responsive<T> | undefined, breakpoint);
+    if (breakpoint === "base") return value;
+    const parent = at(
+      style[key] as Responsive<T> | undefined,
+      breakpoint === "mobile" ? "tablet" : "base",
+    );
+    return value === parent ? undefined : value;
+  };
+
+  push(decls, "color", only<string>("hoverColor"));
+  push(decls, "background-color", only<string>("hoverBackgroundColor"));
+  push(decls, "border-color", only<string>("hoverBorderColor"));
+  const opacity = only<number>("hoverOpacity");
+  push(decls, "opacity", opacity === undefined ? undefined : String(opacity));
   return decls;
 }
 
@@ -157,6 +201,8 @@ export type ElementCss = {
   base: string;
   /** Declarations per override breakpoint, keyed by breakpoint. */
   overrides: Partial<Record<Exclude<Breakpoint, "base">, string>>;
+  /** `:hover` declarations, keyed by breakpoint. */
+  hover: Partial<Record<Breakpoint, string>>;
 };
 
 /** Builds the rule bodies for one element's style bag. */
@@ -166,7 +212,14 @@ export function styleToCss(style: ElementStyle): ElementCss {
     const decls = declarationsFor(style, breakpoint);
     if (decls.length > 0) overrides[breakpoint] = decls.join(";");
   }
-  return { base: declarationsFor(style, "base").join(";"), overrides };
+
+  const hover: ElementCss["hover"] = {};
+  for (const breakpoint of ["base", "tablet", "mobile"] as const) {
+    const decls = hoverDeclarationsFor(style, breakpoint);
+    if (decls.length > 0) hover[breakpoint] = decls.join(";");
+  }
+
+  return { base: declarationsFor(style, "base").join(";"), overrides, hover };
 }
 
 /** The class name an element's generated rules are attached to. */
@@ -243,14 +296,24 @@ export function buildStylesheet(
   entries: { id: string; style: ElementStyle }[],
   extraRules: Rule[] = [],
 ): string {
-  const rules: Rule[] = entries.map((entry) => {
+  const rules: Rule[] = [];
+  for (const entry of entries) {
     const css = styleToCss(entry.style);
-    return {
-      selector: `.${elementClassName(entry.id)}`,
+    const selector = `.${elementClassName(entry.id)}`;
+    rules.push({
+      selector,
       base: css.base || undefined,
       tablet: css.overrides.tablet,
       mobile: css.overrides.mobile,
-    };
-  });
+    });
+    if (css.hover.base || css.hover.tablet || css.hover.mobile) {
+      rules.push({
+        selector: `${selector}:hover`,
+        base: css.hover.base,
+        tablet: css.hover.tablet,
+        mobile: css.hover.mobile,
+      });
+    }
+  }
   return buildStylesheetFromRules([...rules, ...extraRules]);
 }

@@ -16,8 +16,8 @@ export default async function OrdersPage() {
 
       {orders.length === 0 ? (
         <p className="rounded-lg border border-black/10 p-6 text-sm text-zinc-500 dark:border-white/15 dark:text-zinc-400">
-          No orders yet. Orders will appear here once storefront checkout is live
-          (Phase 2).
+          No orders yet. Orders will appear here once storefront checkout is
+          live (Phase 2).
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-black/10 dark:border-white/15">

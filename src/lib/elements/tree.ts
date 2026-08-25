@@ -104,10 +104,7 @@ export function* walkTree(
   yield* visit(nodes, null);
 }
 
-export function findNode(
-  nodes: ElementNode[],
-  id: string,
-): ElementNode | null {
+export function findNode(nodes: ElementNode[], id: string): ElementNode | null {
   for (const { node } of walkTree(nodes)) {
     if (node.id === id) return node;
   }

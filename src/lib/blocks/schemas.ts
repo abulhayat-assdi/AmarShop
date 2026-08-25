@@ -50,9 +50,7 @@ const productSchema = z.object({
 
 export const productGridSchema = z.object({
   heading: z.string().optional(),
-  columns: z
-    .union([z.literal(2), z.literal(3), z.literal(4)])
-    .default(3),
+  columns: z.union([z.literal(2), z.literal(3), z.literal(4)]).default(3),
   products: z.array(productSchema).default([]),
 });
 

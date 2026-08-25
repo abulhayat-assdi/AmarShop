@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildStylesheet, elementClassName, styleToCss } from "@/lib/elements/css";
+import {
+  buildStylesheet,
+  elementClassName,
+  styleToCss,
+} from "@/lib/elements/css";
 import { resolveResponsive } from "@/lib/elements/responsive";
 import { parseStyle } from "@/lib/elements/style";
 import {
@@ -56,7 +60,9 @@ describe("parseStyle", () => {
   it("drops out-of-range numbers rather than emitting them", () => {
     expect(parseStyle({ fontSize: 99999 }).fontSize?.base).toBeUndefined();
     expect(parseStyle({ opacity: 5 }).opacity?.base).toBeUndefined();
-    expect(parseStyle({ fontSize: "not a number" }).fontSize?.base).toBeUndefined();
+    expect(
+      parseStyle({ fontSize: "not a number" }).fontSize?.base,
+    ).toBeUndefined();
   });
 });
 
@@ -77,7 +83,7 @@ describe("styleToCss", () => {
   });
 
   it("never emits a declaration for a rejected value", () => {
-    const css = styleToCss(parseStyle({ color: "}x{" , fontSize: 16 }));
+    const css = styleToCss(parseStyle({ color: "}x{", fontSize: 16 }));
     expect(css.base).not.toContain("}");
     expect(css.base).toBe("font-size:16px");
   });
@@ -256,5 +262,55 @@ describe("createElementId / elementClassName", () => {
       expect(id).toMatch(/^[a-z0-9][a-z0-9-]*$/);
       expect(elementClassName(id)).toBe(`el-${id}`);
     }
+  });
+});
+
+describe("hover and extra style tokens", () => {
+  it("emits a :hover rule separate from the base rule", () => {
+    const css = buildStylesheet([
+      {
+        id: "b1",
+        style: parseStyle({
+          backgroundColor: "#111111",
+          hoverBackgroundColor: "#222222",
+          transition: 200,
+        }),
+      },
+    ]);
+    expect(css).toContain(".el-b1{");
+    expect(css).toContain(".el-b1:hover{background-color:#222222}");
+    expect(css).toContain("transition:color 200ms");
+  });
+
+  it("keeps hover colours under the same validation", () => {
+    const css = buildStylesheet([
+      { id: "b1", style: parseStyle({ hoverColor: "}x{" }) },
+    ]);
+    expect(css).toBe("");
+  });
+
+  it("emits italic, decoration, overflow and z-index", () => {
+    const css = buildStylesheet([
+      {
+        id: "t1",
+        style: parseStyle({
+          fontStyle: "italic",
+          textDecoration: "underline",
+          overflowHidden: true,
+          zIndex: 5,
+        }),
+      },
+    ]);
+    expect(css).toContain("font-style:italic");
+    expect(css).toContain("text-decoration:underline");
+    expect(css).toContain("overflow:hidden");
+    expect(css).toContain("z-index:5");
+    expect(css).toContain("position:relative");
+  });
+
+  it("rejects an out-of-range z-index", () => {
+    expect(
+      buildStylesheet([{ id: "t1", style: parseStyle({ zIndex: 99999 }) }]),
+    ).toBe("");
   });
 });

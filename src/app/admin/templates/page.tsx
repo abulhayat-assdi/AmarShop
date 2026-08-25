@@ -131,7 +131,11 @@ export default async function TemplatesAdminPage() {
                 </span>
                 {canEdit && (
                   <form action={toggleTemplateActiveAction}>
-                    <input type="hidden" name="templateId" value={template.id} />
+                    <input
+                      type="hidden"
+                      name="templateId"
+                      value={template.id}
+                    />
                     <input
                       type="hidden"
                       name="isActive"

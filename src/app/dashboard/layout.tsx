@@ -7,6 +7,7 @@ import { stopImpersonationAction } from "@/app/admin/impersonation-actions";
 const NAV = [
   { href: "/dashboard", label: "Overview" },
   { href: "/dashboard/editor", label: "Edit site" },
+  { href: "/dashboard/editor/preview", label: "New editor (preview)" },
   { href: "/dashboard/products", label: "Products" },
   { href: "/dashboard/orders", label: "Orders" },
   { href: "/dashboard/inventory", label: "Inventory" },
@@ -51,7 +52,7 @@ export default async function DashboardLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-md px-2 py-1.5 text-zinc-600 transition-colors hover:bg-black/5 hover:text-foreground dark:text-zinc-400 dark:hover:bg-white/10"
+                  className="hover:text-foreground rounded-md px-2 py-1.5 text-zinc-600 transition-colors hover:bg-black/5 dark:text-zinc-400 dark:hover:bg-white/10"
                 >
                   {item.label}
                 </Link>

@@ -33,9 +33,9 @@ export default function SignupPage() {
     });
 
     if (!response.ok) {
-      const data = (await response.json().catch(() => null)) as
-        | { error?: string }
-        | null;
+      const data = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
       setPending(false);
       setError(data?.error ?? "Sign-up failed. Please try again.");
       return;
@@ -125,7 +125,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={pending}
-            className="mt-2 rounded-md bg-foreground px-4 py-2 font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="bg-foreground text-background mt-2 rounded-md px-4 py-2 font-medium transition-opacity hover:opacity-90 disabled:opacity-60"
           >
             {pending ? "Creating…" : "Create site"}
           </button>

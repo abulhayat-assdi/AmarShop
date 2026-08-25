@@ -113,7 +113,12 @@ export function NewTemplateForm({
 
           <label className={labelClass}>
             <span className={labelTextClass}>Name</span>
-            <input name="name" required maxLength={200} className={fieldClass} />
+            <input
+              name="name"
+              required
+              maxLength={200}
+              className={fieldClass}
+            />
           </label>
 
           <label className={labelClass}>
@@ -125,8 +130,8 @@ export function NewTemplateForm({
               className={fieldClass}
             />
             <span className={labelTextClass}>
-              Lowercase letters, numbers and hyphens. A number is appended if the
-              slug is already taken.
+              Lowercase letters, numbers and hyphens. A number is appended if
+              the slug is already taken.
             </span>
           </label>
 
@@ -143,7 +148,11 @@ export function NewTemplateForm({
 
           <label className={labelClass}>
             <span className={labelTextClass}>Site type</span>
-            <select name="siteType" defaultValue="ecommerce" className={fieldClass}>
+            <select
+              name="siteType"
+              defaultValue="ecommerce"
+              className={fieldClass}
+            >
               {SITE_TYPES.map((type) => (
                 <option key={type} value={type}>
                   {type}
@@ -172,8 +181,8 @@ export function NewTemplateForm({
       </div>
 
       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        New templates are created inactive — activate them from the template list
-        once you are happy with the layout.
+        New templates are created inactive — activate them from the template
+        list once you are happy with the layout.
       </p>
     </form>
   );

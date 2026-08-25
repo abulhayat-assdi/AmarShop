@@ -74,12 +74,14 @@ export function CheckoutForm() {
           available soon.
         </p>
 
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        )}
 
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-foreground px-5 py-2.5 font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="bg-foreground text-background rounded-md px-5 py-2.5 font-medium transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {pending ? "Placing order…" : "Place order (Cash on Delivery)"}
         </button>

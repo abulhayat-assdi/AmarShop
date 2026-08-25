@@ -15,7 +15,9 @@ export function ProductGrid({ heading, columns, products }: ProductGridData) {
   return (
     <section className="mx-auto w-full max-w-6xl px-6 py-12">
       {heading && (
-        <h2 className="mb-6 text-2xl font-semibold tracking-tight">{heading}</h2>
+        <h2 className="mb-6 text-2xl font-semibold tracking-tight">
+          {heading}
+        </h2>
       )}
       <div className={`grid grid-cols-1 gap-6 ${COLUMN_CLASS[columns]}`}>
         {products.map((product, i) => (
@@ -32,7 +34,7 @@ export function ProductGrid({ heading, columns, products }: ProductGridData) {
                 />
               )}
               {product.badge && (
-                <span className="absolute top-2 left-2 rounded bg-foreground px-2 py-0.5 text-xs font-medium text-background">
+                <span className="bg-foreground text-background absolute top-2 left-2 rounded px-2 py-0.5 text-xs font-medium">
                   {product.badge}
                 </span>
               )}

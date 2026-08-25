@@ -68,8 +68,8 @@ export function hasResponsiveValue<T>(
 ): boolean {
   return Boolean(
     value &&
-      (value.base !== undefined ||
-        value.tablet !== undefined ||
-        value.mobile !== undefined),
+    (value.base !== undefined ||
+      value.tablet !== undefined ||
+      value.mobile !== undefined),
   );
 }

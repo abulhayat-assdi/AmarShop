@@ -110,7 +110,8 @@ export async function createTemplate(input: {
   blocks: Block[];
   isActive?: boolean;
 }) {
-  const base = slugifyTemplateSlug(input.slug) || slugifyTemplateSlug(input.name);
+  const base =
+    slugifyTemplateSlug(input.slug) || slugifyTemplateSlug(input.name);
   if (!base) {
     throw new Error(
       "Could not derive a slug — please enter one using latin letters.",

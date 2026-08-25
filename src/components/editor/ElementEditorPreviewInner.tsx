@@ -64,7 +64,12 @@ const STARTER = [
               backgroundColor: { base: "#38bdf8" },
               color: { base: "#0b1220" },
               borderRadius: {
-                base: { topLeft: 8, topRight: 8, bottomRight: 8, bottomLeft: 8 },
+                base: {
+                  topLeft: 8,
+                  topRight: 8,
+                  bottomRight: 8,
+                  bottomLeft: 8,
+                },
               },
               width: { base: "fit" },
             },

@@ -11,7 +11,11 @@ import {
   setTenantPlan,
   setTenantStatus,
 } from "@/lib/admin/tenants";
-import { FEATURE_KEYS, type FeatureKey, setTenantFeature } from "@/lib/features";
+import {
+  FEATURE_KEYS,
+  type FeatureKey,
+  setTenantFeature,
+} from "@/lib/features";
 
 const TENANT_STATUSES = ["active", "suspended", "trial"] as const;
 

@@ -28,7 +28,7 @@ export function HeroBanner({
         {buttonText && (
           <a
             href={buttonHref}
-            className="mt-2 rounded-md bg-foreground px-6 py-2.5 font-medium text-background"
+            className="bg-foreground text-background mt-2 rounded-md px-6 py-2.5 font-medium"
           >
             {buttonText}
           </a>

@@ -62,10 +62,12 @@ export function CartView() {
         ))}
       </ul>
       <div className="flex items-center justify-between border-t border-black/10 pt-4 dark:border-white/10">
-        <span className="text-lg font-semibold">Total: {formatTaka(total)}</span>
+        <span className="text-lg font-semibold">
+          Total: {formatTaka(total)}
+        </span>
         <Link
           href="/checkout"
-          className="rounded-md bg-foreground px-5 py-2.5 font-medium text-background transition-opacity hover:opacity-90"
+          className="bg-foreground text-background rounded-md px-5 py-2.5 font-medium transition-opacity hover:opacity-90"
         >
           Checkout
         </Link>

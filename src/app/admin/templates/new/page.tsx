@@ -12,7 +12,8 @@ export default async function NewTemplatePage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">New template</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Start blank, duplicate an existing template, or import a template JSON.{" "}
+          Start blank, duplicate an existing template, or import a template
+          JSON.{" "}
           <Link href="/admin/templates" className="underline">
             Back to templates
           </Link>

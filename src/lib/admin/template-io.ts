@@ -38,7 +38,10 @@ export function slugifyTemplateSlug(input: string): string {
  * Appends `-2`, `-3`, … until the slug no longer collides with `taken`, so
  * duplicating a template never fails on the unique constraint.
  */
-export function uniqueTemplateSlug(base: string, taken: Iterable<string>): string {
+export function uniqueTemplateSlug(
+  base: string,
+  taken: Iterable<string>,
+): string {
   const used = new Set(taken);
   if (!used.has(base)) return base;
   for (let n = 2; n < 1000; n += 1) {

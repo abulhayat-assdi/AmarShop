@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { uploadRoot } from "@/lib/storage/local";
-import { assertValidSchemaName } from "@/lib/tenant/schema-sql";
+import { assertValidMediaScope } from "@/lib/storage/media";
 
 // Reads files from the VPS disk (spec §7.1); Node runtime for fs access.
 export const runtime = "nodejs";
@@ -13,10 +13,13 @@ const CONTENT_TYPES: Record<string, string> = {
   ".jpeg": "image/jpeg",
   ".png": "image/png",
   ".gif": "image/gif",
+  ".avif": "image/avif",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
 };
 
 /**
- * Serves self-hosted uploads at /uploads/<schema>/<file>. Public assets
+ * Serves self-hosted uploads at /uploads/<scope>/<file>. Public assets
  * (product images), so no auth. Path segments are strictly validated to prevent
  * directory traversal. A Cloudflare proxy can cache in front (spec §7.1).
  */
@@ -31,11 +34,15 @@ export async function GET(
 
   const [schema, ...rest] = segments;
   try {
-    assertValidSchemaName(schema);
+    assertValidMediaScope(schema);
   } catch {
     return new NextResponse(null, { status: 400 });
   }
-  if (rest.some((s) => !s || s.includes("..") || s.includes("/") || s.includes("\\"))) {
+  if (
+    rest.some(
+      (s) => !s || s.includes("..") || s.includes("/") || s.includes("\\"),
+    )
+  ) {
     return new NextResponse(null, { status: 400 });
   }
 

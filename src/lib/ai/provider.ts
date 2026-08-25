@@ -71,7 +71,9 @@ async function generateOpenAiCompatible(
     }),
   });
 
-  const body = (await response.json().catch(() => null)) as ChatCompletion | null;
+  const body = (await response
+    .json()
+    .catch(() => null)) as ChatCompletion | null;
 
   if (!response.ok) {
     throw new Error(

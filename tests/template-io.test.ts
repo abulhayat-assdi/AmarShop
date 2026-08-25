@@ -71,7 +71,10 @@ describe("parseTemplateImport", () => {
 
   it("drops unknown blocks and rejects when none survive", () => {
     const mixed = JSON.parse(validFile);
-    mixed.blocks = [{ type: "Navbar", data: {} }, { type: "Nope", data: {} }];
+    mixed.blocks = [
+      { type: "Navbar", data: {} },
+      { type: "Nope", data: {} },
+    ];
     const result = parseTemplateImport(JSON.stringify(mixed));
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value.blocks).toHaveLength(1);
@@ -114,7 +117,13 @@ describe("serialiseTemplate", () => {
 
 describe("starterBlocks", () => {
   it("produces a valid starter for every site type", () => {
-    for (const type of ["ecommerce", "blog", "portfolio", "agency", "landing"] as const) {
+    for (const type of [
+      "ecommerce",
+      "blog",
+      "portfolio",
+      "agency",
+      "landing",
+    ] as const) {
       const blocks = starterBlocks(type);
       expect(blocks.length).toBeGreaterThan(0);
       expect(blocks[0].type).toBe("Navbar");

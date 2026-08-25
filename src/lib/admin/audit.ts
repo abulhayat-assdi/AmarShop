@@ -35,7 +35,9 @@ export async function listAuditLog(limit = 100) {
   });
 
   // Resolve actor emails (actor_user_id has no FK, so join in app code).
-  const actorIds = [...new Set(entries.map((e) => e.actorUserId).filter(Boolean))] as string[];
+  const actorIds = [
+    ...new Set(entries.map((e) => e.actorUserId).filter(Boolean)),
+  ] as string[];
   const users = actorIds.length
     ? await prisma.user.findMany({
         where: { id: { in: actorIds } },
@@ -46,6 +48,8 @@ export async function listAuditLog(limit = 100) {
 
   return entries.map((e) => ({
     ...e,
-    actorEmail: e.actorUserId ? (emailById.get(e.actorUserId) ?? "—") : "system",
+    actorEmail: e.actorUserId
+      ? (emailById.get(e.actorUserId) ?? "—")
+      : "system",
   }));
 }

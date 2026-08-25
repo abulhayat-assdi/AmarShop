@@ -61,7 +61,9 @@ export async function activateSubscription(input: {
   });
 }
 
-export async function cancelSubscription(subscriptionId: string): Promise<void> {
+export async function cancelSubscription(
+  subscriptionId: string,
+): Promise<void> {
   await prisma.subscription.update({
     where: { id: subscriptionId },
     data: { status: "cancelled" },

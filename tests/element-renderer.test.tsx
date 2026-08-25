@@ -27,7 +27,11 @@ describe("ElementRenderer", () => {
             id: "col-1",
             type: "Column",
             children: [
-              { id: "h-1", type: "Heading", props: { text: "Hello", level: "h1" } },
+              {
+                id: "h-1",
+                type: "Heading",
+                props: { text: "Hello", level: "h1" },
+              },
             ],
           },
         ],
@@ -42,7 +46,12 @@ describe("ElementRenderer", () => {
 
   it("emits the generated stylesheet before the markup", () => {
     const html = render([
-      { id: "h-1", type: "Heading", props: { text: "x" }, style: { color: "#ff0000" } },
+      {
+        id: "h-1",
+        type: "Heading",
+        props: { text: "x" },
+        style: { color: "#ff0000" },
+      },
     ]);
     expect(html.indexOf(".el-h-1{color:#ff0000}")).toBeLessThan(
       html.indexOf("<h2"),
@@ -100,13 +109,21 @@ describe("ElementRenderer", () => {
   it("converts YouTube links to an embed and keeps unknown ones as <video>", () => {
     expect(
       render([
-        { id: "v-1", type: "Video", props: { url: "https://youtu.be/abc123xyz" } },
+        {
+          id: "v-1",
+          type: "Video",
+          props: { url: "https://youtu.be/abc123xyz" },
+        },
       ]),
     ).toContain("https://www.youtube.com/embed/abc123xyz");
 
     expect(
       render([
-        { id: "v-2", type: "Video", props: { url: "https://cdn.example/a.mp4" } },
+        {
+          id: "v-2",
+          type: "Video",
+          props: { url: "https://cdn.example/a.mp4" },
+        },
       ]),
     ).toContain("<video");
   });
@@ -122,7 +139,12 @@ describe("ElementRenderer", () => {
 
   it("stacks columns at the configured breakpoint", () => {
     const html = render([
-      { id: "s-1", type: "Section", props: { stackOn: "tablet" }, children: [] },
+      {
+        id: "s-1",
+        type: "Section",
+        props: { stackOn: "tablet" },
+        children: [],
+      },
     ]);
     expect(html).toContain('data-stack="tablet"');
   });
@@ -131,7 +153,11 @@ describe("ElementRenderer", () => {
 describe("widgetRules", () => {
   it("emits responsive height for a Spacer", () => {
     const tree = parseTree([
-      { id: "sp-1", type: "Spacer", props: { height: { base: 80, mobile: 24 } } },
+      {
+        id: "sp-1",
+        type: "Spacer",
+        props: { height: { base: 80, mobile: 24 } },
+      },
     ]);
     const css = buildStylesheet(collectStyles(tree), widgetRules(tree));
     expect(css).toContain(".el-sp-1{height:80px}");
