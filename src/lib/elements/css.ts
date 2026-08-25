@@ -174,27 +174,54 @@ export function elementClassName(id: string): string {
   return `el-${id}`;
 }
 
+/** One element's rules, already reduced to declaration strings. */
+export type Rule = {
+  selector: string;
+  base?: string;
+  tablet?: string;
+  mobile?: string;
+};
+
 /**
- * Builds one stylesheet for a whole tree. Media queries are emitted after all
- * base rules so overrides always win, regardless of element order.
+ * Emits a responsive numeric property (e.g. a Spacer's height) as rules for a
+ * selector. Used for widget props that are responsive but are not part of the
+ * shared style vocabulary.
  */
-export function buildStylesheet(
-  entries: { id: string; style: ElementStyle }[],
-): string {
+export function responsiveLengthRule(
+  selector: string,
+  properties: string[],
+  value: Responsive<number> | undefined,
+): Rule | null {
+  if (!value) return null;
+  const rule: Rule = { selector };
+  for (const breakpoint of ["base", "tablet", "mobile"] as const) {
+    const resolved = resolveResponsive(value, breakpoint);
+    if (resolved === undefined) continue;
+    if (breakpoint !== "base") {
+      const wider = resolveResponsive(
+        value,
+        breakpoint === "mobile" ? "tablet" : "base",
+      );
+      if (resolved === wider) continue;
+    }
+    rule[breakpoint] = properties.map((p) => `${p}:${resolved}px`).join(";");
+  }
+  return rule.base || rule.tablet || rule.mobile ? rule : null;
+}
+
+/**
+ * Assembles rules into a stylesheet. Media queries come after every base rule
+ * so overrides always win, regardless of element order.
+ */
+export function buildStylesheetFromRules(rules: Rule[]): string {
   const base: string[] = [];
   const tablet: string[] = [];
   const mobile: string[] = [];
 
-  for (const entry of entries) {
-    const css = styleToCss(entry.style);
-    const selector = `.${elementClassName(entry.id)}`;
-    if (css.base) base.push(`${selector}{${css.base}}`);
-    if (css.overrides.tablet) {
-      tablet.push(`${selector}{${css.overrides.tablet}}`);
-    }
-    if (css.overrides.mobile) {
-      mobile.push(`${selector}{${css.overrides.mobile}}`);
-    }
+  for (const rule of rules) {
+    if (rule.base) base.push(`${rule.selector}{${rule.base}}`);
+    if (rule.tablet) tablet.push(`${rule.selector}{${rule.tablet}}`);
+    if (rule.mobile) mobile.push(`${rule.selector}{${rule.mobile}}`);
   }
 
   const parts = [base.join("")];
@@ -209,4 +236,21 @@ export function buildStylesheet(
     );
   }
   return parts.filter(Boolean).join("");
+}
+
+/** Builds one stylesheet for a whole tree's style bags. */
+export function buildStylesheet(
+  entries: { id: string; style: ElementStyle }[],
+  extraRules: Rule[] = [],
+): string {
+  const rules: Rule[] = entries.map((entry) => {
+    const css = styleToCss(entry.style);
+    return {
+      selector: `.${elementClassName(entry.id)}`,
+      base: css.base || undefined,
+      tablet: css.overrides.tablet,
+      mobile: css.overrides.mobile,
+    };
+  });
+  return buildStylesheetFromRules([...rules, ...extraRules]);
 }
