@@ -4,22 +4,32 @@ import "@measured/puck/puck.css";
 import { type Data, Puck } from "@measured/puck";
 import Link from "next/link";
 import { useState } from "react";
-import { saveSiteBlocks } from "@/app/dashboard/editor/actions";
-import { puckDataToBlocks } from "@/lib/editor/mapping";
+import { type EditorBlock, puckDataToBlocks } from "@/lib/editor/mapping";
 import { puckConfig } from "@/lib/editor/puck-config";
 
 /**
- * Visual site editor (spec §5.7). Puck edits the structured block data and its
- * Publish button saves it back to the tenant's site_config. Full-screen overlay
- * with an Exit link back to the dashboard.
+ * Visual block editor (spec §5.7). Puck edits the structured block data and its
+ * Publish button hands the blocks to the `onSave` server action supplied by the
+ * page. Used both for a tenant's live site (`/dashboard/editor`) and for master
+ * templates in the super-admin (`/admin/templates/[id]/edit`).
  */
-export function SiteEditor({ initialData }: { initialData: Data }) {
+export function SiteEditor({
+  initialData,
+  onSave,
+  exitHref = "/dashboard",
+  exitLabel = "Exit",
+}: {
+  initialData: Data;
+  onSave: (blocks: EditorBlock[]) => Promise<void>;
+  exitHref?: string;
+  exitLabel?: string;
+}) {
   const [status, setStatus] = useState<string | null>(null);
 
   async function handlePublish(data: Data) {
     setStatus("Saving…");
     try {
-      await saveSiteBlocks(puckDataToBlocks(data));
+      await onSave(puckDataToBlocks(data));
       setStatus("Saved");
     } catch {
       setStatus("Save failed");
@@ -35,8 +45,8 @@ export function SiteEditor({ initialData }: { initialData: Data }) {
         overrides={{
           headerActions: ({ children }) => (
             <>
-              <Link href="/dashboard" className="px-3 py-1.5 text-sm underline">
-                Exit
+              <Link href={exitHref} className="px-3 py-1.5 text-sm underline">
+                {exitLabel}
               </Link>
               {children}
             </>
