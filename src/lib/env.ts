@@ -48,6 +48,11 @@ const envSchema = z.object({
   // Bearer token guarding the cron endpoint (/api/cron/sweep). Optional; when
   // unset the endpoint is disabled.
   CRON_SECRET: z.string().min(16).optional(),
+
+  // AI design editor (spec §5.7). Optional — the feature is disabled when the
+  // key is unset. ANTHROPIC_MODEL overrides the default model.
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_MODEL: z.string().min(1).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
