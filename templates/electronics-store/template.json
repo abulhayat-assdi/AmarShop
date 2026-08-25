@@ -1,0 +1,49 @@
+{
+  "name": "Electronics Store",
+  "slug": "electronics-store",
+  "category": "electronics",
+  "siteType": "ecommerce",
+  "blocks": [
+    {
+      "type": "Navbar",
+      "data": {
+        "logoText": "গ্যাজেট শপ",
+        "links": [{ "label": "হোম" }, { "label": "শপ" }, { "label": "অফার" }]
+      }
+    },
+    {
+      "type": "HeroBanner",
+      "data": {
+        "heading": "সেরা দামে গ্যাজেট",
+        "subheading": "মোবাইল, ল্যাপটপ ও এক্সেসরিজ",
+        "buttonText": "কিনুন",
+        "bgColor": "#0b1220"
+      }
+    },
+    {
+      "type": "CategoryBar",
+      "data": {
+        "categories": [
+          { "label": "মোবাইল" },
+          { "label": "ল্যাপটপ" },
+          { "label": "এক্সেসরিজ" },
+          { "label": "গ্যাজেট" }
+        ]
+      }
+    },
+    {
+      "type": "ProductGrid",
+      "data": {
+        "heading": "জনপ্রিয় পণ্য",
+        "columns": 4,
+        "products": [
+          { "name": "ইয়ারবাডস", "price": 1500, "badge": "নতুন" },
+          { "name": "পাওয়ার ব্যাংক ২০০০০mAh", "price": 1800 },
+          { "name": "স্মার্ট ওয়াচ", "price": 2500 },
+          { "name": "ব্লুটুথ স্পিকার", "price": 1200, "badge": "সেল" }
+        ]
+      }
+    },
+    { "type": "Footer", "data": { "text": "© ২০২৬ গ্যাজেট শপ" } }
+  ]
+}

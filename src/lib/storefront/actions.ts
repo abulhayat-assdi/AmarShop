@@ -1,6 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
+import { formatTaka } from "@/lib/format";
+import { notifySafe } from "@/lib/notifications";
 import { type CartLine, placeOrder } from "@/lib/tenant/checkout";
 import { getTenantBySubdomain } from "@/lib/tenant/context";
 import { getRootDomain, getSubdomainFromHost } from "@/lib/tenant/subdomain";
@@ -36,12 +38,19 @@ export async function placeOrderAction(input: {
   }
 
   try {
-    const { orderId } = await placeOrder(tenant.schemaName, {
+    const { orderId, total } = await placeOrder(tenant.schemaName, {
       customerName: name,
       phone,
       address,
       email: input.customer.email?.trim() || null,
       items: input.items,
+    });
+    // Best-effort order confirmation (never blocks the order).
+    await notifySafe({
+      channel: "sms",
+      to: phone,
+      subject: `${tenant.name} — order confirmed`,
+      body: `Your order #${orderId.slice(0, 8)} is confirmed. Total ${formatTaka(total)}. Payment: Cash on Delivery.`,
     });
     return { orderId };
   } catch (error) {

@@ -1,0 +1,40 @@
+{
+  "name": "Simple Landing",
+  "slug": "landing-simple",
+  "category": "landing",
+  "siteType": "landing",
+  "blocks": [
+    {
+      "type": "Navbar",
+      "data": {
+        "logoText": "প্রোডাক্ট",
+        "links": [{ "label": "ফিচার" }, { "label": "যোগাযোগ" }]
+      }
+    },
+    {
+      "type": "HeroBanner",
+      "data": {
+        "heading": "আপনার সমস্যার সহজ সমাধান",
+        "subheading": "আজই শুরু করুন — বিনামূল্যে",
+        "buttonText": "শুরু করুন",
+        "buttonHref": "#",
+        "bgColor": "#1e293b"
+      }
+    },
+    {
+      "type": "AboutSection",
+      "data": {
+        "heading": "কেন আমরা",
+        "body": "দ্রুত, নির্ভরযোগ্য ও সাশ্রয়ী। হাজারো গ্রাহকের আস্থা।"
+      }
+    },
+    {
+      "type": "ContactSection",
+      "data": {
+        "heading": "যোগাযোগ করুন",
+        "email": "hi@product.example"
+      }
+    },
+    { "type": "Footer", "data": { "text": "© ২০২৬ প্রোডাক্ট" } }
+  ]
+}

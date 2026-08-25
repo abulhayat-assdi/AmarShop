@@ -1,0 +1,45 @@
+{
+  "name": "Modern Agency",
+  "slug": "agency-modern",
+  "category": "agency",
+  "siteType": "agency",
+  "blocks": [
+    {
+      "type": "Navbar",
+      "data": {
+        "logoText": "স্টুডিও",
+        "links": [
+          { "label": "সেবা" },
+          { "label": "কাজ" },
+          { "label": "যোগাযোগ" }
+        ]
+      }
+    },
+    {
+      "type": "HeroBanner",
+      "data": {
+        "heading": "আমরা ব্র্যান্ড তৈরি করি",
+        "subheading": "ডিজাইন, ডেভেলপমেন্ট ও মার্কেটিং",
+        "buttonText": "কথা বলুন",
+        "bgColor": "#111827"
+      }
+    },
+    {
+      "type": "AboutSection",
+      "data": {
+        "heading": "আমাদের সম্পর্কে",
+        "body": "আমরা একটি সৃজনশীল এজেন্সি — ছোট-বড় ব্যবসার জন্য ব্র্যান্ডিং ও ডিজিটাল সমাধান দিই।"
+      }
+    },
+    { "type": "Gallery", "data": { "heading": "আমাদের কাজ", "images": [] } },
+    {
+      "type": "ContactSection",
+      "data": {
+        "heading": "যোগাযোগ",
+        "email": "hello@studio.example",
+        "phone": "01900-000000"
+      }
+    },
+    { "type": "Footer", "data": { "text": "© ২০২৬ স্টুডিও" } }
+  ]
+}
