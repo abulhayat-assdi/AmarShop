@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   getSubdomainFromHost,
+  isCustomDomainHost,
   isReservedSubdomain,
   isValidSubdomain,
   schemaNameForSubdomain,
@@ -53,5 +54,20 @@ describe("getSubdomainFromHost", () => {
     expect(getSubdomainFromHost("api.localhost:3000", root)).toBeNull();
     expect(getSubdomainFromHost("example.com", root)).toBeNull();
     expect(getSubdomainFromHost(null, root)).toBeNull();
+  });
+});
+
+describe("isCustomDomainHost", () => {
+  const root = "localhost:3000";
+  it("detects custom domains", () => {
+    expect(isCustomDomainHost("shop.example.com", root)).toBe(true);
+    expect(isCustomDomainHost("example.com", root)).toBe(true);
+  });
+  it("is false for platform, subdomain, and bare hosts", () => {
+    expect(isCustomDomainHost("localhost:3000", root)).toBe(false);
+    expect(isCustomDomainHost("shop.localhost:3000", root)).toBe(false);
+    expect(isCustomDomainHost("www.localhost:3000", root)).toBe(false);
+    expect(isCustomDomainHost("localhost", root)).toBe(false);
+    expect(isCustomDomainHost(null, root)).toBe(false);
   });
 });

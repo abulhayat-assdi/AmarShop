@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BlockImage } from "@/components/blocks/BlockImage";
@@ -8,7 +7,7 @@ import { CartView } from "@/components/storefront/CartView";
 import { CheckoutForm } from "@/components/storefront/CheckoutForm";
 import { formatTaka } from "@/lib/format";
 import { getOrder } from "@/lib/tenant/checkout";
-import { getTenantBySubdomain } from "@/lib/tenant/context";
+import { resolveRequestTenant } from "@/lib/tenant/context";
 import { getSiteConfigBlocks } from "@/lib/tenant/site-config";
 import {
   getStorefrontProduct,
@@ -26,13 +25,11 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 export default async function TenantSitePage({ params }: TenantSiteParams) {
-  const { subdomain, slug } = await params;
+  const { slug } = await params;
 
-  // Only reachable via the subdomain rewrite (middleware sets this header).
-  const viaMiddleware = (await headers()).get("x-tenant-subdomain");
-  if (viaMiddleware !== subdomain) notFound();
-
-  const tenant = await getTenantBySubdomain(subdomain);
+  // Resolved from middleware headers (subdomain or custom domain); a direct
+  // /s visit has no header and 404s.
+  const tenant = await resolveRequestTenant();
   if (!tenant) notFound();
 
   if (tenant.status === "suspended") {

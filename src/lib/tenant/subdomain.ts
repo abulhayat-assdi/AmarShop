@@ -84,3 +84,19 @@ export function getSubdomainFromHost(
   if (!sub || sub.includes("/") || isReservedSubdomain(sub)) return null;
   return sub;
 }
+
+/**
+ * True when the host is a custom domain — present, not the root domain (or its
+ * www), and not a subdomain of the root. Such requests are resolved by
+ * `customDomain` rather than by subdomain (spec §6.1).
+ */
+export function isCustomDomainHost(
+  host: string | null | undefined,
+  rootDomain: string,
+): boolean {
+  if (!host) return false;
+  const h = host.toLowerCase().trim();
+  const root = rootDomain.toLowerCase().trim();
+  if (!h.includes(".")) return false; // e.g. bare "localhost"
+  return h !== root && h !== `www.${root}` && !h.endsWith(`.${root}`);
+}

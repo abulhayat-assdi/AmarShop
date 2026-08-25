@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getOrderStats } from "@/lib/tenant/orders";
 import { getProductStats } from "@/lib/tenant/products";
 import { getSiteConfigBlocks } from "@/lib/tenant/site-config";
-import { selectTemplate } from "./actions";
+import { selectTemplate, setCustomDomainAction } from "./actions";
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
@@ -97,6 +97,33 @@ export default async function DashboardPage() {
             )}
           </dd>
         </dl>
+      </section>
+
+      <section className="rounded-lg border border-black/10 p-6 dark:border-white/15">
+        <h2 className="mb-2 text-lg font-medium">Custom domain</h2>
+        <p className="mb-3 text-sm text-zinc-500 dark:text-zinc-400">
+          {tenant.customDomain
+            ? `Current: ${tenant.customDomain}. `
+            : "Use your own domain (e.g. shop.example.com). "}
+          Point its DNS to the platform; SSL is issued automatically on the VPS.
+        </p>
+        <form
+          action={setCustomDomainAction}
+          className="flex flex-wrap items-center gap-2"
+        >
+          <input
+            name="customDomain"
+            defaultValue={tenant.customDomain ?? ""}
+            placeholder="shop.example.com"
+            className="rounded-md border border-black/15 bg-transparent px-3 py-2 text-sm outline-none focus:border-black/40 dark:border-white/20 dark:focus:border-white/50"
+          />
+          <button
+            type="submit"
+            className="rounded-md border border-black/15 px-3 py-1.5 text-sm font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+          >
+            Save
+          </button>
+        </form>
       </section>
 
       <section>

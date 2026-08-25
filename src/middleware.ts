@@ -1,51 +1,57 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getRootDomain, getSubdomainFromHost } from "@/lib/tenant/subdomain";
+import {
+  getRootDomain,
+  getSubdomainFromHost,
+  isCustomDomainHost,
+} from "@/lib/tenant/subdomain";
 
 /**
- * Subdomain routing (spec §4.3).
+ * Subdomain + custom-domain routing (spec §4.3, §6.1).
  *
- * Resolves the tenant subdomain from the request host and rewrites tenant
- * requests to the internal `/s/<subdomain>` route that renders that tenant's
- * site. Requests to the platform itself (root domain / www / reserved names)
- * pass through untouched so the SaaS app (sign-up, login, dashboard, admin)
- * works as normal.
+ * Resolves the tenant from the request host and rewrites tenant requests to the
+ * internal `/s/...` route that renders that tenant's site:
+ *  - `<sub>.<root>`  -> /s/<sub>/...    (x-tenant-subdomain header)
+ *  - a custom domain -> /s/_/...        (x-tenant-host header)
+ * Requests to the platform itself (root / www / reserved) pass through.
  *
- * This runs on the Edge runtime and must not touch the database: it only parses
- * the host. The actual tenant lookup + schema selection happens server-side in
- * the tenant route (Node), keyed off the subdomain resolved here.
+ * Edge runtime — no database access here. The tenant lookup + schema selection
+ * happen server-side in the tenant route, keyed off the header set here.
  */
 export function middleware(request: NextRequest) {
   // Behind a reverse proxy (Traefik/Coolify) the real host may be in
   // `x-forwarded-host`; fall back to `host` for direct requests.
   const host =
     request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  const subdomain = getSubdomainFromHost(host, getRootDomain());
-
+  const rootDomain = getRootDomain();
   const { pathname } = request.nextUrl;
-  const isInternalSitePath = pathname === "/s" || pathname.startsWith("/s/");
+  const suffix = pathname === "/" ? "" : pathname;
 
-  if (!subdomain) {
-    // Platform request: keep the internal tenant path unreachable directly.
-    if (isInternalSitePath) {
-      return new NextResponse(null, { status: 404 });
-    }
-    return NextResponse.next();
+  const subdomain = getSubdomainFromHost(host, rootDomain);
+  if (subdomain) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/s/${subdomain}${suffix}`;
+    const headers = new Headers(request.headers);
+    headers.set("x-tenant-subdomain", subdomain);
+    return NextResponse.rewrite(url, { request: { headers } });
   }
 
-  // Tenant request: rewrite to the internal site route and tag it so the route
-  // can confirm it arrived via this middleware (not a direct /s/... visit).
-  const url = request.nextUrl.clone();
-  url.pathname = `/s/${subdomain}${pathname === "/" ? "" : pathname}`;
+  if (isCustomDomainHost(host, rootDomain)) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/s/_${suffix}`;
+    const headers = new Headers(request.headers);
+    headers.set("x-tenant-host", (host as string).toLowerCase());
+    return NextResponse.rewrite(url, { request: { headers } });
+  }
 
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-tenant-subdomain", subdomain);
-
-  return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+  // Platform request: keep the internal tenant path unreachable directly.
+  if (pathname === "/s" || pathname.startsWith("/s/")) {
+    return new NextResponse(null, { status: 404 });
+  }
+  return NextResponse.next();
 }
 
 export const config = {
   // Run on everything except API routes, uploads, Next internals, and static
-  // assets. `/uploads/*` must reach its route handler on any host (not be
-  // rewritten to a tenant path), since product images are served cross-subdomain.
+  // assets. `/uploads/*` must reach its route handler on any host.
   matcher: ["/((?!api|uploads|_next/static|_next/image|favicon.ico).*)"],
 };

@@ -28,3 +28,27 @@ export async function selectTemplate(formData: FormData) {
   await setSiteConfig(schema, template.id, template.structureJson);
   revalidatePath("/dashboard");
 }
+
+/**
+ * Sets (or clears) the tenant's custom domain (spec §6.1). App-side only —
+ * pointing DNS and issuing SSL is handled by Traefik/Coolify on the VPS. A
+ * uniqueness clash is swallowed (the domain stays unchanged).
+ */
+export async function setCustomDomainAction(formData: FormData) {
+  const { tenantId } = await requireTenantContext();
+  const domain = String(formData.get("customDomain") ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
+
+  try {
+    await prisma.tenant.update({
+      where: { id: tenantId },
+      data: { customDomain: domain ? domain : null },
+    });
+  } catch (error) {
+    console.error("setCustomDomain failed (likely already in use):", error);
+  }
+  revalidatePath("/dashboard");
+}

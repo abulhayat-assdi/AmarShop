@@ -1,28 +1,21 @@
 "use server";
 
-import { headers } from "next/headers";
 import { formatTaka } from "@/lib/format";
 import { notifySafe } from "@/lib/notifications";
 import { type CartLine, placeOrder } from "@/lib/tenant/checkout";
-import { getTenantBySubdomain } from "@/lib/tenant/context";
-import { getRootDomain, getSubdomainFromHost } from "@/lib/tenant/subdomain";
+import { resolveRequestTenant } from "@/lib/tenant/context";
 
 /**
- * Places a storefront order (spec §6). The tenant is derived from the request
- * host (server-side), never from the client, so a customer cannot order into
- * another tenant's shop. Prices are recomputed from the database in placeOrder.
+ * Places a storefront order (spec §6). The tenant is resolved from the request
+ * host (via middleware headers), never from the client, so a customer cannot
+ * order into another tenant's shop. Prices are recomputed from the database in
+ * placeOrder.
  */
 export async function placeOrderAction(input: {
   customer: { name: string; phone: string; address: string; email: string };
   items: CartLine[];
 }): Promise<{ orderId?: string; error?: string }> {
-  const h = await headers();
-  const subdomain =
-    h.get("x-tenant-subdomain") ??
-    getSubdomainFromHost(h.get("host"), getRootDomain());
-  if (!subdomain) return { error: "Shop not found." };
-
-  const tenant = await getTenantBySubdomain(subdomain);
+  const tenant = await resolveRequestTenant();
   if (!tenant || tenant.status === "suspended") {
     return { error: "This shop is currently unavailable." };
   }
@@ -45,7 +38,6 @@ export async function placeOrderAction(input: {
       email: input.customer.email?.trim() || null,
       items: input.items,
     });
-    // Best-effort order confirmation (never blocks the order).
     await notifySafe({
       channel: "sms",
       to: phone,
