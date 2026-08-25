@@ -1,7 +1,11 @@
 import { createElement } from "react";
 import { buildStylesheet, elementClassName } from "@/lib/elements/css";
 import { BREAKPOINT_MAX_WIDTH } from "@/lib/elements/responsive";
-import { collectStyles, type ElementNode, parseTree } from "@/lib/elements/tree";
+import {
+  collectStyles,
+  type ElementNode,
+  parseTree,
+} from "@/lib/elements/tree";
 import { widgetRules } from "@/lib/elements/widget-rules";
 import type { IconName } from "@/lib/elements/widgets";
 import { ElementIcon } from "./ElementIcon";
@@ -89,6 +93,7 @@ function RenderNode({ node }: { node: ElementNode }) {
         tag,
         {
           id: node.id,
+          "data-el-id": node.id,
           className: classes(node, "el-section"),
           "data-stack": prop<string>(node, "stackOn", "mobile"),
         },
@@ -103,7 +108,9 @@ function RenderNode({ node }: { node: ElementNode }) {
 
     case "Column":
       return (
-        <div className={classes(node, "el-column")}>{renderChildren(node)}</div>
+        <div data-el-id={node.id} className={classes(node, "el-column")}>
+          {renderChildren(node)}
+        </div>
       );
 
     case "Heading": {
@@ -112,7 +119,7 @@ function RenderNode({ node }: { node: ElementNode }) {
       const text = prop(node, "text", "");
       return createElement(
         level,
-        { className: classes(node, "el-widget") },
+        { className: classes(node, "el-widget"), "data-el-id": node.id },
         href && href !== "#" ? <a href={href}>{text}</a> : text,
       );
     }
@@ -120,7 +127,10 @@ function RenderNode({ node }: { node: ElementNode }) {
     case "Text":
       // Rendered as text, never as markup — newlines are preserved by CSS.
       return (
-        <p className={classes(node, "el-widget", "el-text")}>
+        <p
+          data-el-id={node.id}
+          className={classes(node, "el-widget", "el-text")}
+        >
           {prop(node, "text", "")}
         </p>
       );
@@ -150,7 +160,7 @@ function RenderNode({ node }: { node: ElementNode }) {
       );
       const href = prop<string | undefined>(node, "href", undefined);
       return (
-        <div className={classes(node, "el-widget")}>
+        <div data-el-id={node.id} className={classes(node, "el-widget")}>
           {href && href !== "#" ? <a href={href}>{image}</a> : image}
         </div>
       );
@@ -162,6 +172,7 @@ function RenderNode({ node }: { node: ElementNode }) {
       const newTab = prop(node, "newTab", false);
       return (
         <a
+          data-el-id={node.id}
           className={classes(node, "el-widget", "el-button")}
           href={prop(node, "href", "#")}
           {...(newTab
@@ -178,7 +189,7 @@ function RenderNode({ node }: { node: ElementNode }) {
 
     case "Divider":
       return (
-        <div className={classes(node, "el-widget")}>
+        <div data-el-id={node.id} className={classes(node, "el-widget")}>
           <div
             className="el-divider-line"
             style={{
@@ -196,13 +207,19 @@ function RenderNode({ node }: { node: ElementNode }) {
 
     case "Spacer":
       // Height is responsive, so it comes from the generated stylesheet.
-      return <div className={classes(node, "el-widget")} aria-hidden="true" />;
+      return (
+        <div
+          data-el-id={node.id}
+          className={classes(node, "el-widget")}
+          aria-hidden="true"
+        />
+      );
 
     case "Icon": {
       const href = prop<string | undefined>(node, "href", undefined);
       const icon = <ElementIcon name={prop<IconName>(node, "name", "star")} />;
       return (
-        <div className={classes(node, "el-widget")}>
+        <div data-el-id={node.id} className={classes(node, "el-widget")}>
           {href && href !== "#" ? <a href={href}>{icon}</a> : icon}
         </div>
       );
@@ -211,6 +228,7 @@ function RenderNode({ node }: { node: ElementNode }) {
     case "Shape":
       return (
         <div
+          data-el-id={node.id}
           className={classes(node, "el-widget")}
           aria-hidden="true"
           style={{
@@ -225,7 +243,11 @@ function RenderNode({ node }: { node: ElementNode }) {
       const ratio = prop(node, "aspectRatio", "16/9");
       const embed = embedUrl(url);
       return (
-        <div className={classes(node, "el-widget")} style={{ aspectRatio: ratio }}>
+        <div
+          data-el-id={node.id}
+          className={classes(node, "el-widget")}
+          style={{ aspectRatio: ratio }}
+        >
           {embed ? (
             <iframe
               className="el-video"

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { responsive } from "./responsive";
+import { hasResponsiveValue, responsive } from "./responsive";
 
 /**
  * Bounded style tokens (spec §1.4, §5.7).
@@ -168,8 +168,22 @@ export const styleSchema = z
 
 export type ElementStyle = z.infer<typeof styleSchema>;
 
-/** Parses an unknown style bag, dropping anything that is not a safe token. */
+/**
+ * Parses an unknown style bag, dropping anything that is not a safe token.
+ *
+ * Properties left with no value at any breakpoint — because every value was
+ * rejected, or the last override was cleared — are removed entirely, so stored
+ * styles never accumulate empty shells.
+ */
 export function parseStyle(raw: unknown): ElementStyle {
   const parsed = styleSchema.safeParse(raw ?? {});
-  return parsed.success ? parsed.data : {};
+  if (!parsed.success) return {};
+
+  const style = parsed.data as Record<string, unknown>;
+  for (const key of Object.keys(style)) {
+    if (!hasResponsiveValue(style[key] as Record<string, unknown>)) {
+      delete style[key];
+    }
+  }
+  return style as ElementStyle;
 }
