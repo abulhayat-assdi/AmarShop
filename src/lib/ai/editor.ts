@@ -1,15 +1,16 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { type Block, BLOCK_TYPES, parseBlocks } from "@/lib/blocks/schemas";
+import { resolveAiConfig } from "./config";
+import { generateText } from "./provider";
 
 /**
  * AI design editor (spec §5.7). A natural-language instruction becomes a
- * JSON-schema-bounded change to the site's blocks: Claude returns the full new
+ * JSON-schema-bounded change to a block list: the model returns the full new
  * blocks array, which is then validated with parseBlocks (the authoritative
- * gate) before it is applied. Claude never returns raw code — only structured
- * block data.
+ * gate) before it is applied. The model never returns raw code — only
+ * structured block data.
+ *
+ * Provider-agnostic: see ./config for which provider/model is used.
  */
-const DEFAULT_MODEL = "claude-opus-5";
-
 function systemPrompt(): string {
   return [
     "You edit a website's structured layout. A site is a JSON array of blocks;",
@@ -37,38 +38,25 @@ export async function applyAiEdit(
   currentBlocks: unknown,
   instruction: string,
 ): Promise<Block[]> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error(
-      "AI editing is not configured (ANTHROPIC_API_KEY is not set).",
-    );
+  const config = resolveAiConfig(process.env);
+  if (!config) {
+    throw new Error("AI editing is not configured (AI_API_KEY is not set).");
   }
 
-  const client = new Anthropic();
   const current = parseBlocks(currentBlocks);
 
-  const response = await client.messages.create({
-    model: process.env.ANTHROPIC_MODEL || DEFAULT_MODEL,
-    max_tokens: 16000,
-    system: systemPrompt(),
-    messages: [
-      {
-        role: "user",
-        content: [
-          "Current blocks:",
-          JSON.stringify(current, null, 2),
-          "",
-          `Instruction: ${instruction}`,
-          "",
-          'Return the full updated site as {"blocks":[...]}.',
-        ].join("\n"),
-      },
-    ],
-  });
-
-  const text = response.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("");
+  const text = await generateText(
+    config,
+    systemPrompt(),
+    [
+      "Current blocks:",
+      JSON.stringify(current, null, 2),
+      "",
+      `Instruction: ${instruction}`,
+      "",
+      'Return the full updated site as {"blocks":[...]}.',
+    ].join("\n"),
+  );
 
   let parsed: unknown;
   try {

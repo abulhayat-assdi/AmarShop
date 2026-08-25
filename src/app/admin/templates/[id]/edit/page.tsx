@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { SiteEditor } from "@/components/editor/SiteEditor";
+import { isAiConfigured } from "@/lib/ai/config";
 import { requirePermission } from "@/lib/admin/permissions";
 import { getTemplateById } from "@/lib/admin/templates";
 import { blocksToPuckData } from "@/lib/editor/mapping";
@@ -31,6 +32,7 @@ export default async function EditTemplatePage({
       onSave={save}
       exitHref="/admin/templates"
       exitLabel="Exit to templates"
+      aiConfigured={isAiConfigured()}
     />
   );
 }

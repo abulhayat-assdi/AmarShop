@@ -49,8 +49,16 @@ const envSchema = z.object({
   // unset the endpoint is disabled.
   CRON_SECRET: z.string().min(16).optional(),
 
-  // AI design editor (spec §5.7). Optional — the feature is disabled when the
-  // key is unset. ANTHROPIC_MODEL overrides the default model.
+  // AI design editor (spec §5.7). Optional — the feature is disabled when no
+  // key is set. Provider-agnostic: "anthropic" uses the native Messages API,
+  // "openai-compatible" any /chat/completions endpoint (OpenAI, OpenRouter,
+  // Groq, DeepSeek, Gemini's compat endpoint, a local Ollama, …).
+  AI_PROVIDER: z.enum(["anthropic", "openai-compatible"]).optional(),
+  AI_API_KEY: z.string().min(1).optional(),
+  AI_BASE_URL: z.string().min(1).optional(),
+  AI_MODEL: z.string().min(1).optional(),
+
+  // Legacy Anthropic-only variables, still honoured as a fallback.
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_MODEL: z.string().min(1).optional(),
 });
